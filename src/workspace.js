@@ -10,7 +10,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   let titleRecord = initialRecord || { room, titleKey: room === PUBLIC_ROOM ? 'publicTitle' : 'roomTitle' }
   let title = displayDocumentTitle(titleRecord)
   let ready = false, timer, revision = 0, dirty = false, selectedCheckpoint, queue = Promise.resolve()
-  let lastCheckpoint, historyWarning = false
+  let lastCheckpoint, historyWarning = false, removed = false
   function updateTitle(value) {
     title = documentTitle(value)
     $('document-title').textContent = title
@@ -23,9 +23,10 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     toast(localizeMessage(error.message) || t('libraryError'))
   }
   function updateCheckpointStatus() {
-    $('checkpoint-status').textContent = historyWarning ? t('historyUnavailable') : lastCheckpoint ? t('latestVersion', { date: date(lastCheckpoint.createdAt) }) : t('openingHistory')
+    $('checkpoint-status').textContent = removed ? t('documentRemoved') : historyWarning ? t('historyUnavailable') : lastCheckpoint ? t('latestVersion', { date: date(lastCheckpoint.createdAt) }) : t('openingHistory')
   }
   function capture(reason = 'Automático') {
+    if (removed) return Promise.resolve(null)
     if (!ready || !isReady()) return Promise.reject(new Error('Aguarde o armazenamento local antes de guardar uma versão.'))
     clearTimeout(timer); timer = undefined
     const version = revision
@@ -40,7 +41,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   }
   function changed() {
     dirty = true; revision++
-    if (ready && isReady() && !timer) timer = setTimeout(() => capture().catch(warning), 30000)
+    if (!removed && ready && isReady() && !timer) timer = setTimeout(() => capture().catch(warning), 30000)
   }
   function action(id, callback, type = 'click') {
     $(id).addEventListener(type, async event => {
@@ -82,7 +83,27 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
       })
       const detail = document.createElement('span')
       detail.textContent = `${record.room === room ? `${t('openNow')} · ` : ''}${date(record.updatedAt)} · ${record.room}`
-      row.append(link, detail); list.append(row)
+      const heading = document.createElement('div'); heading.className = 'document-row-heading'
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-document'
+      remove.setAttribute('aria-label', t('removeDocument', { title: displayDocumentTitle(record) }))
+      remove.title = remove.getAttribute('aria-label')
+      remove.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>'
+      remove.addEventListener('click', async () => {
+        if (!window.confirm(t('removeDocumentConfirm', { title: displayDocumentTitle(record) }))) return
+        remove.disabled = true
+        const wasRemoved = removed
+        try {
+          if (record.room === room) {
+            removed = true; clearTimeout(timer); timer = undefined
+            await queue.catch(() => {})
+          }
+          await library.removeDocument(record.room)
+          if (record.room === room) { dirty = false; lastCheckpoint = undefined; updateCheckpointStatus() }
+          await renderDocuments(); $('document-filter').focus()
+          toast(t('documentRemoved'))
+        } catch (error) { removed = wasRemoved; remove.disabled = false; toast(t('removeDocumentError')) }
+      })
+      heading.append(link, remove); row.append(heading, detail); list.append(row)
     }
     $('document-empty').hidden = !!list.children.length
   }
@@ -98,7 +119,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   })
   action('rename-form', async () => {
     const record = await library.touchDocument(room, $('rename-title').value)
-    titleRecord = record; updateTitle(displayDocumentTitle(record)); $('rename-dialog').close()
+    removed = false; titleRecord = record; updateTitle(displayDocumentTitle(record)); $('rename-dialog').close()
     toast(t('renamed'))
   }, 'submit')
   action('duplicate-document', () => newDocument(t('copyTitle', { title }), Y.encodeStateAsUpdate(doc)))

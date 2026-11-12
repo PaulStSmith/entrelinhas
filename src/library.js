@@ -69,7 +69,7 @@ export function createLibrary(indexedDB, databaseName = 'entrelinhas-library-v1'
     },
     listDocuments() {
       return transaction(['documents'], 'readonly', (tx, done) => {
-        tx.objectStore('documents').getAll().onsuccess = event => done(event.target.result.sort((a, b) => b.updatedAt - a.updatedAt))
+        tx.objectStore('documents').getAll().onsuccess = event => done(event.target.result.filter(record => !record.removedAt).sort((a, b) => b.updatedAt - a.updatedAt))
       })
     },
     async discoverDocuments() {
@@ -90,7 +90,7 @@ export function createLibrary(indexedDB, databaseName = 'entrelinhas-library-v1'
           const previous = event.target.result
           const now = Date.now()
           const titleKey = title === undefined ? (previous ? defaultTitleKey(previous) : room === PUBLIC_ROOM ? 'publicTitle' : 'roomTitle') : null
-          const value = { ...previous, room, titleKey, title: title === undefined && previous ? previous.title : documentTitle(title || (room === PUBLIC_ROOM ? t('publicTitle') : t('roomTitle', { room }))), createdAt: previous?.createdAt || now, updatedAt: now }
+          const value = { ...previous, removedAt: undefined, room, titleKey, title: title === undefined && previous ? previous.title : documentTitle(title || (room === PUBLIC_ROOM ? t('publicTitle') : t('roomTitle', { room }))), createdAt: previous?.createdAt || now, updatedAt: now }
           store.put(value); done(value)
         }
       })
@@ -117,6 +117,25 @@ export function createLibrary(indexedDB, databaseName = 'entrelinhas-library-v1'
         }
       })
     },
+    removeDocument(room) {
+      if (!validRoom(room)) return Promise.reject(new Error('Sala inválida.'))
+      return transaction(['documents', 'checkpoints'], 'readwrite', (tx, done) => {
+        const documents = tx.objectStore('documents')
+        documents.get(room).onsuccess = event => {
+          const previous = event.target.result
+          // Retain a marker so replica discovery cannot resurrect the removed entry.
+          const record = { ...previous, room, removedAt: Date.now() }
+          delete record.sourceKey
+          documents.put(record)
+        }
+        const request = tx.objectStore('checkpoints').index('room').openCursor(room)
+        request.onsuccess = event => {
+          const cursor = event.target.result
+          if (cursor) { cursor.delete(); cursor.continue() }
+        }
+        done()
+      })
+    },
     listCheckpoints(room) {
       return transaction(['checkpoints'], 'readonly', (tx, done) => {
         tx.objectStore('checkpoints').index('room').getAll(room).onsuccess = event => done(event.target.result.sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)))
@@ -128,24 +147,27 @@ export function createLibrary(indexedDB, databaseName = 'entrelinhas-library-v1'
       if (bytes > MAX_HISTORY_BYTES) return Promise.reject(new Error('Documento grande demais para o histórico local. Baixe uma cópia HTML.'))
       return transaction(['checkpoints', 'documents'], 'readwrite', (tx, done) => {
         const store = tx.objectStore('checkpoints')
-        store.index('room').getAll(room).onsuccess = event => {
-          const previous = event.target.result.sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id))
-          if (previous[0]?.html === html) { done(previous[0]); return }
-          const now = Math.max(Date.now(), (previous[0]?.createdAt || 0) + 1)
-          const checkpoint = { id: crypto.randomUUID(), room, createdAt: now, reason: String(reason).slice(0, 60), update, html, text, bytes }
-          let retainedBytes = bytes
-          let retainedCount = 1
-          for (const item of previous) {
-            if (retainedCount < MAX_CHECKPOINTS && retainedBytes + item.bytes <= MAX_HISTORY_BYTES) {
-              retainedCount++; retainedBytes += item.bytes
-            } else store.delete(item.id)
+        tx.objectStore('documents').get(room).onsuccess = event => {
+          if (event.target.result?.removedAt) { done(null); return }
+          store.index('room').getAll(room).onsuccess = event => {
+            const previous = event.target.result.sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id))
+            if (previous[0]?.html === html) { done(previous[0]); return }
+            const now = Math.max(Date.now(), (previous[0]?.createdAt || 0) + 1)
+            const checkpoint = { id: crypto.randomUUID(), room, createdAt: now, reason: String(reason).slice(0, 60), update, html, text, bytes }
+            let retainedBytes = bytes
+            let retainedCount = 1
+            for (const item of previous) {
+              if (retainedCount < MAX_CHECKPOINTS && retainedBytes + item.bytes <= MAX_HISTORY_BYTES) {
+                retainedCount++; retainedBytes += item.bytes
+              } else store.delete(item.id)
+            }
+            store.add(checkpoint)
+            const documents = tx.objectStore('documents')
+            documents.get(room).onsuccess = event => {
+              if (event.target.result) documents.put({ ...event.target.result, updatedAt: now })
+            }
+            done(checkpoint)
           }
-          store.add(checkpoint)
-          const documents = tx.objectStore('documents')
-          documents.get(room).onsuccess = event => {
-            if (event.target.result) documents.put({ ...event.target.result, updatedAt: now })
-          }
-          done(checkpoint)
         }
       })
     },

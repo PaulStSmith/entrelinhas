@@ -81,6 +81,8 @@ Cada checkpoint guarda uma atualização Yjs completa e uma representação sani
 
 Duplicar ou recuperar cria uma nova sala com uma atualização inicial imutável. A aplicação dessa atualização é idempotente; reabrir a cópia não reinsere texto removido depois. A recuperação nunca substitui o conteúdo da sala original. Abrir um arquivo também cria uma sala independente com semente imutável. O registro guarda `sourceKey`, SHA-256 do nome e dos bytes originais. Uma única transação de leitura e escrita procura essa chave e cria o registro somente se não existir, inclusive entre abas concorrentes. Reabrir retorna à sala existente sem substituir a semente ou as edições. Alterar nome ou bytes cria outro documento. A associação é local ao navegador e à origem.
 
+A lixeira remove a entrada visível e os checkpoints na mesma transação, mantendo um marcador `removedAt` para impedir a redescoberta automática. Autosaves de registros removidos não recriam o histórico. A associação `sourceKey` é descartada, mas a réplica e a semente são preservadas; abrir explicitamente o link registra a sala novamente.
+
 Não há servidor de histórico: limpar os dados locais pode apagar todas as versões daquele navegador.
 
 ### Impressão

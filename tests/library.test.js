@@ -118,3 +118,45 @@ test('default titles follow language while explicit names survive reloads', asyn
     select('en'); page.window.close(); await library.close()
   }
 })
+
+test('removal clears only the selected history and stays removed during discovery and autosave', async () => {
+  const indexedDB = new IDBFactory()
+  const library = createLibrary(indexedDB)
+  const replicaRequest = indexedDB.open('entrelinhas-rich-v2-doc-remove')
+  const replica = await new Promise(resolve => { replicaRequest.onsuccess = () => resolve(replicaRequest.result) })
+  const checkpoint = { update: new Uint8Array([1]), html: '<p>Keep</p>', text: 'Keep' }
+  try {
+    await library.createDocument({ room: 'doc-remove', title: 'Remove me', seed: new Uint8Array([1]) })
+    await library.createDocument({ room: 'doc-keep', title: 'Keep me' })
+    await library.saveCheckpoint('doc-remove', checkpoint)
+    await library.saveCheckpoint('doc-keep', checkpoint)
+    await library.removeDocument('doc-remove')
+    await library.discoverDocuments()
+    assert.deepEqual((await library.listDocuments()).map(record => record.room), ['doc-keep'])
+    assert.equal((await library.listCheckpoints('doc-remove')).length, 0)
+    assert.equal((await library.listCheckpoints('doc-keep')).length, 1)
+    assert.equal(await library.saveCheckpoint('doc-remove', checkpoint), null)
+    assert.equal((await library.listCheckpoints('doc-remove')).length, 0)
+    await library.close()
+    assert.equal((await library.listDocuments()).length, 1)
+    await library.touchDocument('doc-remove')
+    assert.equal((await library.listDocuments()).length, 2)
+    assert.equal((await library.getDocument('doc-remove')).title, 'Remove me')
+    assert.deepEqual((await library.getDocument('doc-remove')).seed, new Uint8Array([1]))
+    assert.ok(await library.saveCheckpoint('doc-remove', checkpoint))
+  } finally { replica.close(); await library.close() }
+})
+
+test('removing an imported document releases its file association without reusing the removed room', async () => {
+  const library = createLibrary(new IDBFactory())
+  try {
+    const imported = { sourceKey: 'a'.repeat(64), name: 'Notes.txt', seed: new Uint8Array([1]) }
+    const first = await library.openImportedDocument(imported)
+    await library.removeDocument(first.room)
+    const second = await library.openImportedDocument(imported)
+    assert.notEqual(first.room, second.room)
+    assert.equal((await library.listDocuments()).length, 1)
+    assert.equal((await library.getDocument(first.room)).sourceKey, undefined)
+    await assert.rejects(library.removeDocument('../invalid'))
+  } finally { await library.close() }
+})
