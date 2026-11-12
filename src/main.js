@@ -198,9 +198,18 @@ async function saveFile(saveAs = false) {
   } catch (error) { if (error.name !== 'AbortError') toast(t('saveError', { error: localizeMessage(error.message) })) }
   finally { busy = false }
 }
-$('save-file').addEventListener('click', () => saveFile())
+async function saveDocument() {
+  if (busy) return
+  busy = true
+  try { await workspace.save(); toast(t('savedToDocuments')) }
+  catch (error) { toast(t('saveError', { error: localizeMessage(error.message) })) }
+  finally { busy = false }
+}
+$('save-file').addEventListener('click', saveDocument)
 $('save-as').addEventListener('click', () => saveFile(true))
-$('download-html').addEventListener('click', () => { downloadText(htmlDocument(), 'entrelinhas.html', 'text/html'); toast(t('htmlDownloaded')) })
+function downloadHTML() { downloadText(htmlDocument(), 'entrelinhas.html', 'text/html'); toast(t('htmlDownloaded')) }
+$('download-html').addEventListener('click', downloadHTML)
+$('download-document').addEventListener('click', downloadHTML)
 $('download').addEventListener('click', () => { downloadText(editor.getText(), 'entrelinhas.txt'); toast(t('textDownloaded')) })
 $('open-file').addEventListener('click', () => { $('file-input').value = ''; $('file-input').click() })
 $('file-input').addEventListener('change', async () => {
@@ -246,7 +255,7 @@ $('replace-all').addEventListener('click', () => {
 document.addEventListener('keydown', event => {
   if (!(event.ctrlKey || event.metaKey) || event.altKey) return
   const key = event.key.toLowerCase()
-  if (key === 's') { event.preventDefault(); saveFile(event.shiftKey) }
+  if (key === 's') { event.preventDefault(); if (event.shiftKey) saveFile(true); else saveDocument() }
   if (key === 'o') { event.preventDefault(); $('open-file').click() }
   if (key === 'f') { event.preventDefault(); openSearch() }
 })

@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT — Copyright (c) 2026 Paulo Santos
 // key, Portuguese source, English, Spanish, French. Every interface string has all four translations.
 export const messageRows = [
+  ['copyDocumentLink','Copiar link de “{title}”','Copy link to “{title}”','Copiar enlace de “{title}”','Copier le lien de « {title} »'],
+  ['copyLinkError','Não foi possível copiar o link. Permita o acesso à área de transferência e tente novamente.','Could not copy the link. Allow clipboard access and try again.','No se pudo copiar el enlace. Permite el acceso al portapapeles e inténtalo de nuevo.','Impossible de copier le lien. Autorisez l’accès au presse-papiers et réessayez.'],
+  ['saveToDocuments','Salvar em Meus documentos','Save to My documents','Guardar en Mis documentos','Enregistrer dans Mes documents'],
+  ['savedToDocuments','Documento salvo em Meus documentos neste navegador.','Document saved to My documents in this browser.','Documento guardado en Mis documentos en este navegador.','Document enregistré dans Mes documents dans ce navigateur.'],
+  ['download','Baixar','Download','Descargar','Télécharger'],
   ['renameDocument','Renomear “{title}”','Rename “{title}”','Renombrar “{title}”','Renommer « {title} »'],
   ['removeDocument','Remover “{title}” dos meus documentos','Remove “{title}” from My documents','Eliminar “{title}” de Mis documentos','Retirer « {title} » de Mes documents'],
   ['removeDocumentConfirm','Remover “{title}” e seu histórico local de Meus documentos? O arquivo original e as cópias de outros participantes não serão apagados. Abrir o link novamente adiciona o documento à lista.','Remove “{title}” and its local history from My documents? The original file and other participants’ copies will stay intact. Opening its link again adds the document back to the list.','¿Eliminar “{title}” y su historial local de Mis documentos? El archivo original y las copias de otros participantes se conservarán. Abrir su enlace de nuevo volverá a añadir el documento a la lista.','Retirer « {title} » et son historique local de Mes documents ? Le fichier original et les copies des autres participants seront conservés. Ouvrir à nouveau son lien ajoutera le document à la liste.'],
@@ -128,7 +133,7 @@ export const messageRows = [
   ['storageWarning','Armazenamento local indisponível. Salve uma cópia antes de fechar.','Local storage is unavailable. Save a copy before closing.','El almacenamiento local no está disponible. Guarda una copia antes de cerrar.','Le stockage local est indisponible. Enregistrez une copie avant de fermer.'],
   ['linkCopied','Link copiado. Convide alguém para escrever com você.','Link copied. Invite someone to write with you.','Enlace copiado. Invita a alguien a escribir contigo.','Lien copié. Invitez quelqu’un à écrire avec vous.'],
   ['copyAddress','Copie o endereço da barra do navegador para compartilhar.','Copy the address from your browser to share.','Copia la dirección del navegador para compartirla.','Copiez l’adresse du navigateur pour la partager.'],
-  ['browserCopy','Cópia no navegador · salve em HTML para guardar o arquivo','Browser copy · save as HTML to keep a file','Copia en el navegador · guarda en HTML para conservar un archivo','Copie dans le navigateur · enregistrez en HTML pour conserver un fichier'],
+  ['browserCopy','Cópia no navegador · use Baixar para guardar o HTML','Browser copy · use Download to keep an HTML file','Copia en el navegador · usa Descargar para guardar el HTML','Copie dans le navigateur · utilisez Télécharger pour conserver le HTML'],
   ['unsaved','alterações não salvas no arquivo','changes not saved to file','cambios sin guardar en el archivo','modifications non enregistrées dans le fichier'],
   ['fileSaved','arquivo salvo','file saved','archivo guardado','fichier enregistré'],
   ['importedCopy','cópia importada ou baixada','imported or downloaded copy','copia importada o descargada','copie importée ou téléchargée'],
@@ -138,7 +143,7 @@ export const messageRows = [
   ['saveError','Não foi possível salvar: {error}','Could not save: {error}','No se pudo guardar: {error}','Impossible d’enregistrer : {error}'],
   ['htmlDownloaded','Cópia HTML baixada com formatação.','HTML copy downloaded with formatting.','Copia HTML descargada con formato.','Copie HTML téléchargée avec mise en forme.'],
   ['textDownloaded','Cópia TXT baixada sem formatação.','Plain-text TXT copy downloaded.','Copia TXT descargada sin formato.','Copie TXT téléchargée sans mise en forme.'],
-  ['fileOpened','Arquivo aberto e conteúdo compartilhado. A primeira gravação pedirá um destino.','File opened and content shared. The first save will ask for a destination.','Archivo abierto y contenido compartido. Al guardar por primera vez se pedirá un destino.','Fichier ouvert et contenu partagé. Le premier enregistrement demandera une destination.'],
+  ['fileOpened','Arquivo aberto e conteúdo compartilhado. O documento está em Meus documentos.','File opened and content shared. The document is in My documents.','Archivo abierto y contenido compartido. El documento está en Mis documentos.','Fichier ouvert et contenu partagé. Le document se trouve dans Mes documents.'],
   ['matches','{count} ocorrência(s)','{count} matches','{count} coincidencias','{count} correspondances'],
   ['matchOne','{count} ocorrência','{count} match','{count} coincidencia','{count} correspondance'],
   ['selectionUpdated','seleção atualizada no documento','selection updated in document','selección actualizada en el documento','sélection mise à jour dans le document'],

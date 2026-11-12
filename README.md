@@ -60,6 +60,8 @@ As traduções ficam em `src/messages.js`; a seleção e a aplicação da interf
 
 Abra **Meus documentos** para criar uma sala com um nome, filtrar a lista e reabrir documentos. **Renomear** altera o nome somente neste navegador; o link da sala continua igual. **Duplicar** cria outra sala com o conteúdo e a formatação atuais. Réplicas de salas anteriores também aparecem quando o navegador oferece enumeração de bancos IndexedDB; nos demais, basta abrir o link de uma sala para cadastrá-la na biblioteca.
 
+Use o ícone de link à direita do nome para copiar o endereço de um documento sem abri-lo. Os botões de link, lápis e lixeira têm tooltips no idioma selecionado.
+
 Use o lápis à direita do nome para renomear qualquer documento diretamente em **Meus documentos**, sem abri-lo. O nome muda somente neste navegador; o link e o conteúdo são preservados. O lápis e a lixeira têm tooltips no idioma selecionado.
 
 Use a lixeira à direita do nome para remover uma entrada de **Meus documentos** e seu histórico local, após confirmação. Isso não altera o arquivo original nem as cópias dos participantes. A réplica local é preservada; abrir o link novamente adiciona o documento à lista. Abrir novamente um arquivo removido cria uma nova entrada.
@@ -82,11 +84,11 @@ Use **Abrir arquivo** para selecionar HTML ou texto UTF-8, com limite de 2 MB. O
 
 **HTML** preserva os títulos, as listas e as marcas suportadas pelo editor. Scripts, imagens externas, estilos arbitrários e outros elementos não suportados são removidos na importação. **TXT** não preserva formatação. DOCX, PDF e RTF não são formatos de importação deste aplicativo.
 
-No Edge e em navegadores com File System Access, **Salvar** solicita o destino na primeira gravação e reutiliza o arquivo escolhido nas seguintes. **Salvar como** sempre pede outro destino. Abrir um arquivo pelo seletor não concede gravação no original: selecione o mesmo destino ao salvar se quiser atualizá-lo. O indicador mostra alterações posteriores ainda não gravadas no arquivo, incluindo edições remotas.
+**Salvar** adiciona ou restaura o documento atual em **Meus documentos** e guarda uma versão local, sem abrir um seletor de arquivos. **Baixar** exporta uma cópia HTML com formatação. No Edge e em navegadores com File System Access, **Salvar como** permite gravar uma cópia no computador. **Salvar como** sempre pede outro destino. Abrir um arquivo pelo seletor não concede gravação no original: selecione o mesmo destino em **Salvar como** se quiser atualizá-lo. O indicador mostra alterações posteriores ainda não gravadas no arquivo, incluindo edições remotas.
 
-Nos demais navegadores, salvar baixa uma nova cópia HTML. **Baixar HTML** sempre exporta uma cópia com formatação, sem vincular um arquivo; **Baixar cópia .txt** exporta somente o texto. Cancelar a escolha do destino não altera o vínculo anterior. Uma gravação só é confirmada depois de a escrita e o fechamento do arquivo terminarem.
+Nos demais navegadores, **Salvar como** baixa uma nova cópia HTML. **Baixar HTML** sempre exporta uma cópia com formatação, sem vincular um arquivo; **Baixar cópia .txt** exporta somente o texto. Cancelar a escolha do destino não altera o vínculo anterior. Uma gravação só é confirmada depois de a escrita e o fechamento do arquivo terminarem.
 
-Atalhos: `Ctrl+O` abre, `Ctrl+S` salva, `Ctrl+Shift+S` salva como, `Ctrl+F` busca, `Ctrl+B` aplica negrito, `Ctrl+I` aplica itálico, `Ctrl+U` sublinha, `Ctrl+Z` desfaz e `Ctrl+Shift+Z` refaz. No macOS, use Command no lugar de Ctrl.
+Atalhos: `Ctrl+O` abre, `Ctrl+S` salva em Meus documentos, `Ctrl+Shift+S` salva como, `Ctrl+F` busca, `Ctrl+B` aplica negrito, `Ctrl+I` aplica itálico, `Ctrl+U` sublinha, `Ctrl+Z` desfaz e `Ctrl+Shift+Z` refaz. No macOS, use Command no lugar de Ctrl.
 
 A versão WYSIWYG utiliza salas e armazenamento `entrelinhas-rich-v2-*`, separados da demonstração inicial de texto simples. Não há migração automática do documento anterior; seu estado antigo permanece no IndexedDB de origem.
 

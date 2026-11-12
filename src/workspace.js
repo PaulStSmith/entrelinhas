@@ -86,6 +86,16 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
       const detail = document.createElement('span')
       detail.textContent = `${record.room === room ? `${t('openNow')} · ` : ''}${date(record.updatedAt)} · ${record.room}`
       const heading = document.createElement('div'); heading.className = 'document-row-heading'
+      const share = document.createElement('button'); share.type = 'button'; share.className = 'copy-document-link'
+      share.setAttribute('aria-label', t('copyDocumentLink', { title: displayDocumentTitle(record) }))
+      share.title = share.getAttribute('aria-label')
+      share.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#i-link"/></svg>'
+      share.addEventListener('click', async () => {
+        try {
+          await window.navigator.clipboard.writeText(documentURL(record.room, window.location.href))
+          toast(t('linkCopied'))
+        } catch { toast(t('copyLinkError')) }
+      })
       const rename = document.createElement('button'); rename.type = 'button'; rename.className = 'rename-document'
       rename.dataset.room = record.room
       rename.setAttribute('aria-label', t('renameDocument', { title: displayDocumentTitle(record) }))
@@ -111,7 +121,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
           toast(t('documentRemoved'))
         } catch (error) { removed = wasRemoved; remove.disabled = false; toast(t('removeDocumentError')) }
       })
-      heading.append(link, rename, remove); row.append(heading, detail); list.append(row)
+      heading.append(link, share, rename, remove); row.append(heading, detail); list.append(row)
     }
     $('document-empty').hidden = !!list.children.length
   }
@@ -203,6 +213,13 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     dispose() { clearTimeout(timer); stopLanguageUpdates() },
     changed,
     capture,
+    async save() {
+      if (!ready || !isReady()) throw new Error('Aguarde o armazenamento local antes de guardar uma versão.')
+      const record = await library.touchDocument(room)
+      removed = false; titleRecord = record; updateTitle(displayDocumentTitle(record))
+      await capture('Versão manual')
+      if ($('documents-dialog').open) await renderDocuments()
+    },
     async openFile(imported) {
       await capture('Antes de abrir arquivo')
       const record = await library.openImportedDocument(imported)

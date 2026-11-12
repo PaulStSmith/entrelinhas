@@ -52,6 +52,12 @@ test('trash button cancels safely and removes the open document without autosave
     assert.equal((await library.listDocuments()).length, 1)
     assert.equal(page.window.document.getElementById('document-title').textContent, 'Notes <safe>.txt')
     assert.equal(page.window.document.activeElement.id, 'document-filter')
+    await workspace.save()
+    assert.equal((await library.listDocuments()).length, 2)
+    assert.equal((await library.listCheckpoints('doc-current')).length, 1)
+    await workspace.save()
+    assert.equal((await library.listDocuments()).length, 2)
+    assert.equal((await library.listCheckpoints('doc-current')).length, 1)
   } finally {
     workspace?.dispose()
     await library.close(); doc.destroy(); page.window.close()
@@ -59,7 +65,7 @@ test('trash button cancels safely and removes the open document without autosave
   }
 })
 
-test('library pencil renames selected documents, preserves the active document, and localizes both tooltips', async () => {
+test('library actions share without navigating, rename selected documents, and localize tooltips', async () => {
   const page = new JSDOM(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), { url: 'https://editor.byteforge.biz/' })
   const previous = { window: globalThis.window, document: globalThis.document, location: globalThis.location }
   globalThis.window = page.window; globalThis.document = page.window.document; globalThis.location = page.window.location
@@ -83,6 +89,20 @@ test('library pencil renames selected documents, preserves the active document, 
     assert.equal(otherPencil.title, 'Rename “Other.txt”')
     assert.equal(otherPencil.getAttribute('aria-label'), otherPencil.title)
     assert.ok(otherPencil.querySelector('use[href="#i-pencil"]'))
+    let copied
+    Object.defineProperty(page.window.navigator, 'clipboard', { value: { writeText: async text => { copied = text } } })
+    const share = otherPencil.previousElementSibling
+    assert.equal(share.title, 'Copy link to “Other.txt”')
+    assert.equal(share.getAttribute('aria-label'), share.title)
+    share.click()
+    await until(() => copied !== undefined)
+    assert.equal(copied, `https://editor.byteforge.biz/?sala=${imported.room}`)
+    assert.equal(page.window.location.href, 'https://editor.byteforge.biz/')
+    assert.equal($('document-title').textContent, 'Current')
+    page.window.navigator.clipboard.writeText = async () => { throw new Error('Blocked') }
+    share.click()
+    await until(() => toast?.startsWith('Could not copy the link'))
+    toast = undefined
     const trash = otherPencil.nextElementSibling
     assert.equal(trash.title, 'Remove “Other.txt” from My documents')
     assert.equal(trash.getAttribute('aria-label'), trash.title)
@@ -98,7 +118,7 @@ test('library pencil renames selected documents, preserves the active document, 
     assert.equal((await library.getDocument(imported.room)).sourceKey, 'b'.repeat(64))
     assert.equal($('document-title').textContent, 'Current')
     assert.equal(page.window.document.activeElement, pencil(imported.room))
-    assert.equal(pencil(imported.room).previousElementSibling.textContent, 'Renamed <notes>')
+    assert.equal(pencil(imported.room).parentElement.querySelector('a').textContent, 'Renamed <notes>')
     toast = undefined
     pencil('doc-current').click(); $('rename-title').value = 'New current name'
     $('rename-form').dispatchEvent(new page.window.Event('submit', { cancelable: true }))
@@ -107,6 +127,7 @@ test('library pencil renames selected documents, preserves the active document, 
     assert.equal(page.window.document.title, 'New current name — Entrelinhas')
     i18n.select('fr')
     await until(() => pencil(imported.room)?.title === 'Renommer « Renamed <notes> »')
+    assert.equal(pencil(imported.room).previousElementSibling.title, 'Copier le lien de « Renamed <notes> »')
     assert.equal(pencil(imported.room).nextElementSibling.title, 'Retirer « Renamed <notes> » de Mes documents')
     await library.close()
     assert.equal((await library.getDocument(imported.room)).title, 'Renamed <notes>')
