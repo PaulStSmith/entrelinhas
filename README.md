@@ -221,3 +221,8 @@ O conteúdo é representado por uma árvore CRDT formatada, com HTML de importa�
 - [Yjs: tipos compartilhados e provedores de sincronização](https://github.com/yjs/yjs)
 - [y-webrtc: transporte e sinalização](https://github.com/yjs/y-webrtc)
 - [Yjs: persistência local e edição offline](https://docs.yjs.dev/getting-started/allowing-offline-editing)
+
+
+## Licença
+
+Copyright (c) 2026 Paulo Santos. Código disponibilizado sob a licença MIT; consulte [LICENSE](LICENSE).
