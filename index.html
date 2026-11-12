@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Editor distribuído com CRDT. Escreva em conjunto, continue offline e sincronize ao reconectar."><title>Entrelinhas — Editor colaborativo</title></head>
+<body>
+  <header class="topbar"><a class="brand" href="./"><span class="brand-mark">≋</span> entrelinhas<span class="brand-tag">ESCRITA COMPARTILHADA</span></a><a id="source-link" href="https://github.com/PaulStSmith/editor-distribuido-crdt" target="_blank" rel="noopener">Código no GitHub ↗</a></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">UM DOCUMENTO. VÁRIAS PERSPECTIVAS.</p><h1>Ideias se encontram<br>entre as linhas.</h1><p class="lead">Um espaço aberto para escrever junto. Cada navegador tem sua cópia; as mudanças se encontram quando vocês se conectam.</p></div><div class="intro-note"><span class="note-icon">↔</span><strong>Seu texto começa aqui.</strong><p>Escreva, compartilhe o link e acompanhe as ideias ganhando forma em tempo real.</p><span>CRDT · WebRTC · JavaScript</span></div></section>
+    <section class="workspace" aria-label="Editor compartilhado">
+      <div class="workspace-header"><div><p class="eyebrow">DOCUMENTO PÚBLICO</p><h2>Nosso caderno compartilhado</h2></div><button id="share" class="button">Copiar link <span aria-hidden="true">↗</span></button></div>
+      <div class="toolbar"><label class="identity"><span>Você</span><input id="name" maxlength="32" aria-label="Seu nome" autocomplete="nickname"></label><div id="participants" class="participants" aria-label="Participantes"></div><div class="toolbar-actions"><button id="download" class="text-button">Baixar .txt</button><button id="connection" class="button small">Simular desconexão</button></div></div>
+      <div id="offline-banner" class="offline-banner" hidden>Você está editando sua cópia local. Ao reconectar, as alterações serão combinadas com as dos outros participantes.</div>
+      <div class="paper"><div class="paper-heading"><span>ESCREVA LIVREMENTE</span><span id="document-label">Caderno público</span></div><div id="editor" aria-label="Conteúdo do documento"></div></div>
+      <div class="statusbar" aria-live="polite"><span><i id="status-dot" class="dot"></i><span id="status">Iniciando réplica local…</span></span><span id="stats">0 palavras · 0 caracteres</span></div>
+    </section>
+    <section class="details"><article><span class="step">01 / LOCAL</span><h3>Seu navegador é um nó</h3><p>Você escreve na sua própria réplica, sem esperar autorização de outro participante.</p></article><article><span class="step">02 / CONCORRENTE</span><h3>Escrevam ao mesmo tempo</h3><p>O CRDT combina as edições. As cores mostram os cursores de quem está conectado.</p></article><article><span class="step">03 / CONVERGENTE</span><h3>Desconecte e volte</h3><p>Experimente o botão de desconexão. Continue escrevendo e reconecte para sincronizar.</p></article></section>
+    <p class="public-note">Este caderno é público: qualquer pessoa com o link pode editar ou apagar o texto. Baixe uma cópia do que quiser guardar. A recuperação do documento depende de uma réplica disponível; não há backup central.</p>
+  </main><footer><span>entrelinhas</span><span>Um experimento em sistemas distribuídos · Arquitetura Reativa</span><a href="https://github.com/PaulStSmith/editor-distribuido-crdt#readme" target="_blank" rel="noopener">Como funciona ↗</a></footer>
+  <div id="toast" role="status" hidden></div>
+  <script type="module" src="/src/main.js"></script>
+</body></html>

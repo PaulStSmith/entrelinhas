@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.docx-qa/
+.azure-deploy/
+*.zip
+.env
+data/
