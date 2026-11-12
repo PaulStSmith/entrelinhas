@@ -32,6 +32,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { createHTMLSanitizer, wrapHTML } from './richtext.js'
 import { decodeTextFile, downloadText, writeTextFile, textFileTypes, MAX_FILE_BYTES } from './files.js'
+import { importSourceKey, createImportSeed } from './imports.js'
 import { findMatches } from './search.js'
 import { createLibrary } from './library.js'
 import { createWorkspace } from './workspace.js'
@@ -59,7 +60,7 @@ const provider = new WebrtcProvider(roomKey, doc, { signaling: [signaling], maxC
 let storageReady = false, storageFailed = false, disconnected = false
 let peerCount = 0, localPeers = 0, signalReachable = false
 let fileHandle = null, fileName = 'entrelinhas.html', lastSaved = null, busy = false
-let pendingImport = null, toastTimer, activeMatch = null
+let toastTimer, activeMatch = null
 let workspace
 const colors = ['#216957', '#a94e37', '#5d5aa5', '#936416', '#256d94']
 const color = colors[crypto.getRandomValues(new Uint32Array(1))[0] % colors.length]
@@ -204,27 +205,18 @@ $('download').addEventListener('click', () => { downloadText(editor.getText(), '
 $('open-file').addEventListener('click', () => { $('file-input').value = ''; $('file-input').click() })
 $('file-input').addEventListener('change', async () => {
   const file = $('file-input').files[0]
-  if (!file) return
+  if (!file || busy) return
+  busy = true
   try {
     if (file.size > MAX_FILE_BYTES) throw new Error('O limite para abrir arquivos é 2 MB.')
-    const content = decodeTextFile(new Uint8Array(await file.arrayBuffer()))
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const content = decodeTextFile(bytes)
     const formatted = /\.html?$/i.test(file.name)
-    pendingImport = { name: file.name, content: formatted ? cleanHTML(content) : { type: 'doc', content: content.split('\n').map(line => ({ type: 'paragraph', ...(line ? { content: [{ type: 'text', text: line }] } : {}) })) } }
-    $('import-filename').textContent = file.name; $('import-dialog').returnValue = ''; $('import-dialog').showModal()
-  } catch (error) { toast(error.message) }
-})
-$('import-dialog').addEventListener('close', async () => {
-  if ($('import-dialog').returnValue === 'confirm' && pendingImport) {
-    const imported = pendingImport; pendingImport = null
-    try {
-      await workspace.capture('Antes de abrir arquivo')
-      editor.commands.setContent(imported.content)
-      fileName = /\.html?$/i.test(imported.name) ? imported.name.replace(/\.htm$/i, '.html') : imported.name.replace(/\.[^.]+$/, '') + '.html'
-      fileHandle = null; lastSaved = snapshot(); updateFileStatus()
-      toast(t('fileOpened'))
-    } catch { toast(t('importFailed')) }
-  }
-  pendingImport = null
+    const imported = formatted ? cleanHTML(content) : { type: 'doc', content: content.split('\n').map(line => ({ type: 'paragraph', ...(line ? { content: [{ type: 'text', text: line }] } : {}) })) }
+    await workspace.openFile({ name: file.name, sourceKey: await importSourceKey(file.name, bytes), seed: createImportSeed(imported) })
+    toast(t('fileOpened'))
+  } catch (error) { toast(t('openFileError', { error: localizeMessage(error.message) })) }
+  finally { busy = false }
 })
 
 function openSearch() { if (!$('search-dialog').open) $('search-dialog').showModal(); $('search-query').focus() }
@@ -256,7 +248,7 @@ document.addEventListener('keydown', event => {
   const key = event.key.toLowerCase()
   if (key === 's') { event.preventDefault(); saveFile(event.shiftKey) }
   if (key === 'o') { event.preventDefault(); $('open-file').click() }
-  if (key === 'f' && !$('import-dialog').open) { event.preventDefault(); openSearch() }
+  if (key === 'f') { event.preventDefault(); openSearch() }
 })
 updateStats(); updateParticipants(); updateStatus(); updateFileStatus(); updateFormat(); checkSignaling()
 if (initialError) toast(t('libraryUnavailable'))

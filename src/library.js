@@ -103,6 +103,20 @@ export function createLibrary(indexedDB, databaseName = 'entrelinhas-library-v1'
         tx.objectStore('documents').add(value); done(value)
       })
     },
+    openImportedDocument({ sourceKey, name, seed }) {
+      if (!/^[a-f0-9]{64}$/.test(sourceKey) || !(seed instanceof Uint8Array)) return Promise.reject(new Error('Versão inválida.'))
+      // One read/write transaction also deduplicates imports from concurrent tabs.
+      return transaction(['documents'], 'readwrite', (tx, done) => {
+        const store = tx.objectStore('documents')
+        store.getAll().onsuccess = event => {
+          const existing = event.target.result.find(record => record.sourceKey === sourceKey)
+          if (existing) { done(existing); return }
+          const now = Date.now()
+          const record = { room: `doc-${crypto.randomUUID()}`, title: documentTitle(name), titleKey: null, sourceKey, seed, createdAt: now, updatedAt: now }
+          store.add(record); done(record)
+        }
+      })
+    },
     listCheckpoints(room) {
       return transaction(['checkpoints'], 'readonly', (tx, done) => {
         tx.objectStore('checkpoints').index('room').getAll(room).onsuccess = event => done(event.target.result.sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)))

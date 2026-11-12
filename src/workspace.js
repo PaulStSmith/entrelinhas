@@ -161,6 +161,11 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   return {
     changed,
     capture,
+    async openFile(imported) {
+      await capture('Antes de abrir arquivo')
+      const record = await library.openImportedDocument(imported)
+      if (record.room !== room) location.assign(documentURL(record.room, location.href))
+    },
     async start() {
       try {
         const record = await library.touchDocument(room)

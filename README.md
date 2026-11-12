@@ -64,7 +64,7 @@ A biblioteca e os nomes ficam nesta origem e neste navegador. Uma nova sala rece
 
 O **Histórico** guarda mudanças a cada 30 segundos durante a edição, além de versões ao abrir, antes de trocar de documento e antes de importar um arquivo. **Guardar versão** permite salvar um ponto manual. Conteúdo idêntico à última versão não gera outra entrada. São mantidas até 20 versões por documento, com limite total de 20 MB; versões antigas são removidas conforme esses limites. O indicador mostra quando a última versão foi guardada ou informa uma falha de armazenamento.
 
-Selecione uma versão para conferir seu conteúdo e use **Restaurar como novo documento**. A recuperação abre outra sala e preserva o documento compartilhado atual. Antes da importação, se não for possível guardar a versão anterior, o conteúdo não será substituído. Baixe uma cópia HTML antes de tentar novamente.
+Selecione uma versão para conferir seu conteúdo e use **Restaurar como novo documento**. A recuperação abre outra sala e preserva o documento compartilhado atual. Antes de abrir um arquivo, se não for possível guardar a versão anterior, a navegação é interrompida e o documento atual é preservado. Baixe uma cópia HTML antes de tentar novamente.
 
 Histórico local não é backup externo: limpar os dados do navegador remove biblioteca, versões e réplicas. Edições feitas nos segundos finais antes de encerrar abruptamente a aba podem não ter um checkpoint, embora a persistência normal da réplica continue funcionando.
 
@@ -74,7 +74,7 @@ Use **Imprimir / PDF** para conferir uma prévia limpa com o nome do documento e
 
 ## Abrir e salvar arquivos locais
 
-Use **Abrir arquivo** para selecionar HTML ou texto UTF-8, com limite de 2 MB. O editor pede confirmação antes de substituir o caderno compartilhado. O arquivo original não é alterado ao abrir. Conteúdo importado será compartilhado com os participantes da sala; para trabalhar sozinho, simule a desconexão antes de abrir.
+Use **Abrir arquivo** para selecionar HTML ou texto UTF-8, com limite de 2 MB. O arquivo abre automaticamente como um documento separado em **Meus documentos**, com o nome do arquivo, sem substituir o caderno atual. Reabrir o mesmo nome e conteúdo retorna ao documento existente, preservando as edições e o nome escolhido no editor. Um arquivo com nome ou conteúdo diferente cria outra entrada. A identificação usa SHA-256 local do nome e dos bytes; datas de modificação não alteram a identidade. O arquivo original não é modificado. A lista e essa identificação ficam neste navegador e nesta origem; limpar os dados remove a associação. Cada documento tem seu próprio link de colaboração.
 
 **HTML** preserva os títulos, as listas e as marcas suportadas pelo editor. Scripts, imagens externas, estilos arbitrários e outros elementos não suportados são removidos na importação. **TXT** não preserva formatação. DOCX, PDF e RTF não são formatos de importação deste aplicativo.
 
@@ -93,7 +93,7 @@ npm test
 npm run build
 ```
 
-Os 21 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
+Os 23 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
 
 ## Publicação
 

@@ -79,7 +79,9 @@ O banco IndexedDB `entrelinhas-library-v1` mantém os nomes dos documentos, a li
 
 Cada checkpoint guarda uma atualização Yjs completa e uma representação sanitizada para prévia. A gravação e a remoção de versões antigas acontecem na mesma transação. São mantidas até 20 versões e até 20 MB por documento. Versões são capturadas após 30 segundos de mudanças, manualmente e antes de operações como trocar de documento ou importar.
 
-Duplicar ou recuperar cria uma nova sala com uma atualização inicial imutável. A aplicação dessa atualização é idempotente; reabrir a cópia não reinsere texto removido depois. A recuperação nunca substitui o conteúdo da sala original. Não há servidor de histórico: limpar os dados locais pode apagar todas as versões daquele navegador.
+Duplicar ou recuperar cria uma nova sala com uma atualização inicial imutável. A aplicação dessa atualização é idempotente; reabrir a cópia não reinsere texto removido depois. A recuperação nunca substitui o conteúdo da sala original. Abrir um arquivo também cria uma sala independente com semente imutável. O registro guarda `sourceKey`, SHA-256 do nome e dos bytes originais. Uma única transação de leitura e escrita procura essa chave e cria o registro somente se não existir, inclusive entre abas concorrentes. Reabrir retorna à sala existente sem substituir a semente ou as edições. Alterar nome ou bytes cria outro documento. A associação é local ao navegador e à origem.
+
+Não há servidor de histórico: limpar os dados locais pode apagar todas as versões daquele navegador.
 
 ### Impressão
 

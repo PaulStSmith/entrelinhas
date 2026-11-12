@@ -58,14 +58,14 @@ test('troca ao vivo preserva conteúdo, nomes, inputs e estrutura dos botões', 
   const editor = document.getElementById('editor')
   editor.innerHTML = '<p><strong>Abrir arquivo</strong> — My original document</p>'
   document.getElementById('document-title').textContent = 'Meu documento'
-  document.getElementById('import-filename').textContent = 'Cancelar.txt'
+  document.getElementById('document-label').textContent = 'Cancelar.txt'
   document.getElementById('new-document-title').value = 'Minha próxima ideia'
   const originalContent = editor.innerHTML
   controller.select('fr')
   assert.equal(document.documentElement.lang, 'fr')
   assert.equal(document.querySelector('#open-file').firstChild.textContent.trim(), 'Ouvrir un fichier')
   assert.equal(document.getElementById('document-title').textContent, 'Meu documento')
-  assert.equal(document.getElementById('import-filename').textContent, 'Cancelar.txt')
+  assert.equal(document.getElementById('document-label').textContent, 'Cancelar.txt')
   assert.equal(document.getElementById('new-document-title').value, 'Minha próxima ideia')
   assert.equal(editor.innerHTML, originalContent)
   assert.ok(document.querySelector('#share svg use'))

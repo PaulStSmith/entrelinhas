@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT — Copyright (c) 2026 Paulo Santos
 // key, Portuguese source, English, Spanish, French. Every interface string has all four translations.
 export const messageRows = [
+  ['openFileError','Não foi possível abrir o arquivo: {error}','Could not open the file: {error}','No se pudo abrir el archivo: {error}','Impossible d’ouvrir le fichier : {error}'],
   ['tagline','Um espaço para escrever junto','A place to write together','Un espacio para escribir juntos','Un espace pour écrire ensemble'],
   ['aboutProject','Sobre o projeto ↗','About the project ↗','Sobre el proyecto ↗','À propos du projet ↗'],
   ['sharedDocument','DOCUMENTO COMPARTILHADO','SHARED DOCUMENT','DOCUMENTO COMPARTIDO','DOCUMENT PARTAGÉ'],
@@ -43,13 +44,7 @@ export const messageRows = [
   ['aboutStorage','Quem tem o link pode editar. Sua lista de documentos e seu histórico ficam neste navegador; baixe cópias importantes. Um novo dispositivo precisa encontrar uma réplica conectada para receber o conteúdo.','Anyone with the link can edit. Your document list and history stay in this browser; download important copies. A new device needs a connected replica to receive the content.','Quien tenga el enlace puede editar. La lista de documentos y el historial se guardan en este navegador; descarga copias importantes. Un dispositivo nuevo necesita encontrar una réplica conectada para recibir el contenido.','Toute personne disposant du lien peut modifier le document. Votre liste et votre historique restent dans ce navigateur ; téléchargez les copies importantes. Un nouvel appareil doit trouver une réplique connectée pour recevoir le contenu.'],
   ['collaborativeWriting','Escrita colaborativa','Collaborative writing','Escritura colaborativa','Écriture collaborative'],
   ['help','Ajuda ↗','Help ↗','Ayuda ↗','Aide ↗'],
-  ['openLocalFile','ABRIR ARQUIVO LOCAL','OPEN LOCAL FILE','ABRIR ARCHIVO LOCAL','OUVRIR UN FICHIER LOCAL'],
-  ['replaceShared','Substituir o documento compartilhado?','Replace the shared document?','¿Reemplazar el documento compartido?','Remplacer le document partagé ?'],
-  ['importBefore','O conteúdo de','The content of','El contenido de','Le contenu de'],
-  ['importAfter','será colocado neste caderno e sincronizado com todos os participantes conectados. Edições simultâneas serão combinadas pelo CRDT.','will replace this notebook and sync with all connected participants. Concurrent edits will be merged by the CRDT.','reemplazará este cuaderno y se sincronizará con todos los participantes conectados. El CRDT combinará las ediciones simultáneas.','remplacera ce carnet et sera synchronisé avec tous les participants connectés. Les modifications simultanées seront fusionnées par le CRDT.'],
-  ['importNote','Abrir não modifica o arquivo original. Na primeira gravação, escolha o destino em Salvar. Antes de substituir, você pode cancelar e salvar uma cópia do caderno atual. HTML mantém a formatação suportada; TXT contém somente texto.','Opening does not change the original file. Choose a destination the first time you save. You can cancel and save a copy of the current notebook first. HTML keeps supported formatting; TXT contains plain text.','Abrir no modifica el archivo original. Elige un destino la primera vez que guardes. Puedes cancelar y guardar una copia del cuaderno actual antes de reemplazarlo. HTML conserva el formato compatible; TXT contiene texto sin formato.','L’ouverture ne modifie pas le fichier original. Choisissez une destination lors du premier enregistrement. Vous pouvez annuler et enregistrer une copie du carnet actuel avant de le remplacer. Le HTML conserve la mise en forme prise en charge ; le TXT contient du texte brut.'],
   ['cancel','Cancelar','Cancel','Cancelar','Annuler'],
-  ['openAndShare','Abrir e compartilhar conteúdo','Open and share content','Abrir y compartir contenido','Ouvrir et partager le contenu'],
   ['findReplace','Buscar e substituir','Find and replace','Buscar y reemplazar','Rechercher et remplacer'],
   ['find','Buscar','Find','Buscar','Rechercher'],
   ['replaceWith','Substituir por','Replace with','Reemplazar por','Remplacer par'],
@@ -139,7 +134,6 @@ export const messageRows = [
   ['htmlDownloaded','Cópia HTML baixada com formatação.','HTML copy downloaded with formatting.','Copia HTML descargada con formato.','Copie HTML téléchargée avec mise en forme.'],
   ['textDownloaded','Cópia TXT baixada sem formatação.','Plain-text TXT copy downloaded.','Copia TXT descargada sin formato.','Copie TXT téléchargée sans mise en forme.'],
   ['fileOpened','Arquivo aberto e conteúdo compartilhado. A primeira gravação pedirá um destino.','File opened and content shared. The first save will ask for a destination.','Archivo abierto y contenido compartido. Al guardar por primera vez se pedirá un destino.','Fichier ouvert et contenu partagé. Le premier enregistrement demandera une destination.'],
-  ['importFailed','Não foi possível guardar a versão anterior. O conteúdo não foi substituído; baixe uma cópia HTML.','Could not save the previous version. The content was not replaced; download an HTML copy.','No se pudo guardar la versión anterior. El contenido no se reemplazó; descarga una copia HTML.','Impossible d’enregistrer la version précédente. Le contenu n’a pas été remplacé ; téléchargez une copie HTML.'],
   ['matches','{count} ocorrência(s)','{count} matches','{count} coincidencias','{count} correspondances'],
   ['matchOne','{count} ocorrência','{count} match','{count} coincidencia','{count} correspondance'],
   ['selectionUpdated','seleção atualizada no documento','selection updated in document','selección actualizada en el documento','sélection mise à jour dans le document'],
