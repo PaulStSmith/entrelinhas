@@ -33,7 +33,10 @@ import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { createHTMLSanitizer, wrapHTML } from './richtext.js'
 import { decodeTextFile, downloadText, writeTextFile, textFileTypes, MAX_FILE_BYTES } from './files.js'
 import { findMatches } from './search.js'
+import { createLibrary } from './library.js'
+import { createWorkspace } from './workspace.js'
 import './style.css'
+import './workspace.css'
 
 const $ = id => document.getElementById(id)
 const signaling = import.meta.env.VITE_SIGNALING_URL || 'wss://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net'
@@ -41,13 +44,19 @@ const requestedRoom = new URL(location.href).searchParams.get('sala')
 const room = requestedRoom && /^[a-zA-Z0-9_-]{1,64}$/.test(requestedRoom) ? requestedRoom : 'caderno-publico'
 // A versão separa o documento XML formatado da primeira demonstração Y.Text.
 const roomKey = `entrelinhas-rich-v2-${room}`
+const library = createLibrary(window.indexedDB)
+let initialRecord, initialError
+try { initialRecord = await library.getDocument(room) } catch (error) { initialError = error }
 const doc = new Y.Doc()
+// A seed is an immutable Yjs update: replaying it is idempotent, including after later deletions.
+try { if (initialRecord?.seed) Y.applyUpdate(doc, initialRecord.seed) } catch (error) { initialError = error }
 const persistence = new IndexeddbPersistence(roomKey, doc)
 const provider = new WebrtcProvider(roomKey, doc, { signaling: [signaling], maxConns: 8 })
 let storageReady = false, storageFailed = false, disconnected = false
 let peerCount = 0, localPeers = 0, signalReachable = false
 let fileHandle = null, fileName = 'entrelinhas.html', lastSaved = null, busy = false
 let pendingImport = null, toastTimer, activeMatch = null
+let workspace
 const colors = ['#216957', '#a94e37', '#5d5aa5', '#936416', '#256d94']
 const color = colors[crypto.getRandomValues(new Uint32Array(1))[0] % colors.length]
 let savedName
@@ -60,7 +69,8 @@ function updateIdentity() {
 }
 updateIdentity()
 const cleanHTML = createHTMLSanitizer(window)
-const editor = new Editor({
+let editor
+editor = new Editor({
   element: $('editor'),
   extensions: [
     StarterKit.configure({ undoRedo: false, heading: { levels: [1, 2, 3] }, link: { openOnClick: false, autolink: false } }),
@@ -71,10 +81,11 @@ const editor = new Editor({
     attributes: { role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Conteúdo do documento compartilhado', spellcheck: 'true', 'data-placeholder': 'Comece uma ideia. Convide outra pessoa para continuar…' },
     transformPastedHTML: cleanHTML
   },
-  onUpdate: () => { updateStats(); updateFileStatus(); activeMatch = null },
+  onUpdate: () => { if (!editor) return; updateStats(); updateFileStatus(); activeMatch = null; workspace?.changed() },
   onSelectionUpdate: updateFormat,
   onTransaction: updateFormat
 })
+workspace = createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady: () => storageReady, initialTitle: initialRecord?.title })
 function updateStats() {
   const content = editor.getText()
   const words = content.trim() ? content.trim().split(/\s+/u).length : 0
@@ -124,7 +135,7 @@ function updateParticipants() {
 }
 provider.on('peers', ({ webrtcPeers, bcPeers }) => { peerCount = webrtcPeers.length; localPeers = bcPeers.length; updateStatus() })
 provider.awareness.on('change', updateParticipants)
-persistence.whenSynced.then(() => { storageReady = true; updateStats(); updateStatus() }).catch(() => {
+persistence.whenSynced.then(() => { storageReady = true; updateStats(); updateStatus(); workspace.start() }).catch(() => {
   storageFailed = true; updateStatus(); toast('Armazenamento local indisponível. Salve uma cópia antes de fechar.')
 })
 $('connection').addEventListener('click', () => {
@@ -197,12 +208,16 @@ $('file-input').addEventListener('change', async () => {
     $('import-filename').textContent = file.name; $('import-dialog').returnValue = ''; $('import-dialog').showModal()
   } catch (error) { toast(error.message) }
 })
-$('import-dialog').addEventListener('close', () => {
+$('import-dialog').addEventListener('close', async () => {
   if ($('import-dialog').returnValue === 'confirm' && pendingImport) {
-    editor.commands.setContent(pendingImport.content)
-    fileName = /\.html?$/i.test(pendingImport.name) ? pendingImport.name.replace(/\.htm$/i, '.html') : pendingImport.name.replace(/\.[^.]+$/, '') + '.html'
-    fileHandle = null; lastSaved = snapshot(); updateFileStatus()
-    toast('Arquivo aberto e conteúdo compartilhado. A primeira gravação pedirá um destino.')
+    const imported = pendingImport; pendingImport = null
+    try {
+      await workspace.capture('Antes de abrir arquivo')
+      editor.commands.setContent(imported.content)
+      fileName = /\.html?$/i.test(imported.name) ? imported.name.replace(/\.htm$/i, '.html') : imported.name.replace(/\.[^.]+$/, '') + '.html'
+      fileHandle = null; lastSaved = snapshot(); updateFileStatus()
+      toast('Arquivo aberto e conteúdo compartilhado. A primeira gravação pedirá um destino.')
+    } catch { toast('Não foi possível guardar a versão anterior. O conteúdo não foi substituído; baixe uma cópia HTML.') }
   }
   pendingImport = null
 })
@@ -237,7 +252,7 @@ document.addEventListener('keydown', event => {
   if (key === 'o') { event.preventDefault(); $('open-file').click() }
   if (key === 'f' && !$('import-dialog').open) { event.preventDefault(); openSearch() }
 })
-if (room !== 'caderno-publico') $('document-label').textContent = `Sala ${room}`
 updateStats(); updateParticipants(); updateStatus(); updateFileStatus(); updateFormat(); checkSignaling()
+if (initialError) toast('Biblioteca local indisponível. Baixe uma cópia HTML antes de fechar.')
 setInterval(checkSignaling, 30000)
 window.addEventListener('online', checkSignaling)
