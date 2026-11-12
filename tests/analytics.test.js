@@ -12,6 +12,7 @@ test('analytics uses the production stream without exposing document titles or r
     assert.equal(queue.length, 4)
     assert.equal(queue[2][0], 'config')
     assert.equal(queue[2][1], MEASUREMENT_ID)
+    assert.equal(queue[1][1].send_page_view, false)
     assert.equal(queue[2][2].send_page_view, false)
     assert.deepEqual(queue[3].slice(0, 2), ['event', 'page_view'])
     assert.equal(queue[3][2].page_title, 'Entrelinhas')

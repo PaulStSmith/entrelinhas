@@ -21,7 +21,7 @@ export function initializeAnalytics(target = window) {
     if (referrer.hostname !== target.location.hostname) page.page_referrer = referrer.origin + '/'
   } catch {}
   target.gtag('js', new Date())
-  target.gtag('set', page)
+  target.gtag('set', { ...page, send_page_view: false })
   target.gtag('config', MEASUREMENT_ID, { ...page, send_page_view: false })
   target.gtag('event', 'page_view', { ...page, send_to: MEASUREMENT_ID })
   const script = target.document.createElement('script')
