@@ -11,5 +11,19 @@ $archivePath = Join-Path $PSScriptRoot '.azure-deploy\server.zip'
 Compress-Archive -Path "$stagingPath\*" -DestinationPath $archivePath -Force
 az webapp config set --resource-group rg-editor-crdt --name editor-crdt-byteforge --startup-file 'node server/index.js' --output none
 if ($LASTEXITCODE -ne 0) { throw 'Falha ao configurar inicialização' }
-az webapp deploy --resource-group rg-editor-crdt --name editor-crdt-byteforge --src-path $archivePath --type zip --output none
+az webapp deploy --resource-group rg-editor-crdt --name editor-crdt-byteforge --src-path $archivePath --type zip --track-status false --output none
 if ($LASTEXITCODE -ne 0) { throw 'Falha na publicação' }
+# No F1, o rastreamento do CLI pode expirar mesmo após o startup bem-sucedido.
+# Confere a resposta real da aplicação depois do upload concluído pelo Kudu.
+$healthUrl = 'https://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net/health'
+for ($attempt = 0; $attempt -lt 15; $attempt++) {
+    try {
+        $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 10
+        if ($health.service -eq 'entrelinhas-signaling' -and $health.status -eq 'ok') {
+            Write-Host 'Servidor publicado e respondendo em /health.' -ForegroundColor Green
+            return
+        }
+    } catch { Write-Host 'Aguardando inicialização do servidor...' }
+    Start-Sleep -Seconds 2
+}
+throw 'O pacote foi enviado, mas /health não respondeu corretamente. Confira os logs do Azure.'

@@ -57,7 +57,7 @@ npm test
 npm run build
 ```
 
-Os testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca entre marcas e sanitização de HTML. A conferência no navegador utiliza duas origens diferentes (`localhost` e `127.0.0.1`) para evitar que BroadcastChannel esconda uma falha de WebRTC. Inclui formatação compartilhada, busca e substituição. A abertura e a gravação pelo diálogo nativo do sistema ainda precisam de conferência manual: a extensão bloqueou o seletor automatizado e a autorização para o controle nativo expirou.
+Os oito testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca entre marcas e sanitização de HTML. A conferência no navegador utiliza duas origens diferentes (`localhost` e `127.0.0.1`) para evitar que BroadcastChannel esconda uma falha de WebRTC. Inclui formatação compartilhada, busca, substituição e convergência após edições offline na versão WYSIWYG. Um download HTML foi conferido no disco, preservando títulos e negrito. A abertura e a gravação pelo diálogo nativo do sistema ainda precisam de conferência manual: a extensão bloqueou o seletor automatizado e a autorização para o controle nativo expirou.
 
 ## Publicação
 
