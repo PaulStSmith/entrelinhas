@@ -4,7 +4,8 @@ Editor WYSIWYG colaborativo distribuído com Tiptap, Yjs e WebRTC. Cada navegado
 
 ## Acessar o editor
 
-- **Site:** https://paulstsmith.github.io/editor-distribuido-crdt/
+- **Site:** https://editor.byteforge.biz/
+- **Endereço original do GitHub Pages:** https://paulstsmith.github.io/editor-distribuido-crdt/
 - **Saúde da sinalização:** https://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net/health
 - **Repositório:** https://github.com/PaulStSmith/editor-distribuido-crdt
 
