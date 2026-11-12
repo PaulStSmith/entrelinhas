@@ -71,7 +71,7 @@ test('descobre réplicas anteriores sem alterar seus dados ou nomes já cadastra
   const replica = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error) })
   const library = createLibrary(indexedDB)
   await library.discoverDocuments()
-  assert.equal((await library.getDocument('sala-antiga')).title, 'Sala sala-antiga')
+  assert.equal((await library.getDocument('sala-antiga')).title, 'Room sala-antiga')
   await library.touchDocument('sala-antiga', 'Nome preservado')
   await library.discoverDocuments()
   assert.equal((await library.getDocument('sala-antiga')).title, 'Nome preservado')

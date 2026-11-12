@@ -23,8 +23,9 @@ não precisam adotar a mesma licença.
 =============================================================================
 */
 
+import { t } from './i18n.js'
 export const MAX_FILE_BYTES = 2 * 1024 * 1024
-export const textFileTypes = [{ description: 'Documento HTML com formatação', accept: { 'text/html': ['.html'] } }, { description: 'Texto simples sem formatação', accept: { 'text/plain': ['.txt'] } }]
+export const textFileTypes = [{ get description() { return t('fileTypeHTML') }, accept: { 'text/html': ['.html'] } }, { get description() { return t('fileTypeText') }, accept: { 'text/plain': ['.txt'] } }]
 
 // Rejeita binários e codificações incompatíveis em vez de corromper o conteúdo.
 export function decodeTextFile(bytes) {

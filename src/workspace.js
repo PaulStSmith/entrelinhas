@@ -2,12 +2,14 @@
 // Copyright (c) 2026 Paulo Santos
 import * as Y from 'yjs'
 import { documentTitle, documentURL, PUBLIC_ROOM } from './library.js'
+import { t, getLocale, formatDate, localizeMessage, onLanguageChange } from './i18n.js'
 
 export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady, initialTitle }) {
   const $ = id => document.getElementById(id)
-  const date = value => new Date(value).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
-  let title = initialTitle || (room === PUBLIC_ROOM ? 'Nosso caderno compartilhado' : `Sala ${room}`)
+  const date = formatDate
+  let title = initialTitle || (room === PUBLIC_ROOM ? t('publicTitle') : t('roomTitle', { room }))
   let ready = false, timer, revision = 0, dirty = false, selectedCheckpoint, queue = Promise.resolve()
+  let lastCheckpoint, historyWarning = false
   function updateTitle(value) {
     title = documentTitle(value)
     $('document-title').textContent = title
@@ -16,8 +18,11 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   }
   updateTitle(title)
   function warning(error) {
-    $('checkpoint-status').textContent = 'Histórico local indisponível · baixe uma cópia'
-    toast(error.message || 'Não foi possível acessar a biblioteca local. Baixe uma cópia HTML.')
+    historyWarning = true; updateCheckpointStatus()
+    toast(localizeMessage(error.message) || t('libraryError'))
+  }
+  function updateCheckpointStatus() {
+    $('checkpoint-status').textContent = historyWarning ? t('historyUnavailable') : lastCheckpoint ? t('latestVersion', { date: date(lastCheckpoint.createdAt) }) : t('openingHistory')
   }
   function capture(reason = 'Automático') {
     if (!ready || !isReady()) return Promise.reject(new Error('Aguarde o armazenamento local antes de guardar uma versão.'))
@@ -26,7 +31,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     const value = { update: Y.encodeStateAsUpdate(doc), html: cleanHTML(editor.getHTML()), text: editor.getText(), reason }
     const saving = queue.catch(() => {}).then(() => library.saveCheckpoint(room, value)).then(checkpoint => {
       if (revision === version) dirty = false
-      $('checkpoint-status').textContent = `Última versão local: ${date(checkpoint.createdAt)}`
+      lastCheckpoint = checkpoint; historyWarning = false; updateCheckpointStatus()
       return checkpoint
     })
     queue = saving
@@ -60,19 +65,22 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   async function renderDocuments() {
     await library.discoverDocuments()
     const records = await library.listDocuments()
-    const query = $('document-filter').value.toLocaleLowerCase('pt-BR')
+    const query = $('document-filter').value.toLocaleLowerCase(getLocale())
     const list = $('document-list'); list.replaceChildren()
-    for (const record of records.filter(item => `${item.title} ${item.room}`.toLocaleLowerCase('pt-BR').includes(query))) {
+    for (const record of records.filter(item => `${item.title} ${item.room}`.toLocaleLowerCase(getLocale()).includes(query))) {
       const row = document.createElement('li')
       const link = document.createElement('a'); link.href = documentURL(record.room, location.href)
       link.textContent = record.title
-      if (record.room === room) link.setAttribute('aria-current', 'page')
+      if (record.room === room) {
+        link.setAttribute('aria-current', 'page')
+        const current = document.createElement('span'); current.className = 'current-label'; current.textContent = ` · ${t('current')}`; link.append(current)
+      }
       link.addEventListener('click', event => {
         if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button) return
         event.preventDefault(); navigate(record.room).catch(warning)
       })
       const detail = document.createElement('span')
-      detail.textContent = `${record.room === room ? 'Aberto agora · ' : ''}${date(record.updatedAt)} · ${record.room}`
+      detail.textContent = `${record.room === room ? `${t('openNow')} · ` : ''}${date(record.updatedAt)} · ${record.room}`
       row.append(link, detail); list.append(row)
     }
     $('document-empty').hidden = !!list.children.length
@@ -90,41 +98,42 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   action('rename-form', async () => {
     const record = await library.touchDocument(room, $('rename-title').value)
     updateTitle(record.title); $('rename-dialog').close()
-    toast('Nome atualizado neste navegador. O link da sala continua o mesmo.')
+    toast(t('renamed'))
   }, 'submit')
-  action('duplicate-document', () => newDocument(`${title} — cópia`, Y.encodeStateAsUpdate(doc)))
+  action('duplicate-document', () => newDocument(t('copyTitle', { title }), Y.encodeStateAsUpdate(doc)))
 
   function preview(checkpoint) {
     selectedCheckpoint = checkpoint
-    $('checkpoint-details').textContent = `${date(checkpoint.createdAt)} · ${checkpoint.reason}`
+    $('checkpoint-details').textContent = `${date(checkpoint.createdAt)} · ${localizeMessage(checkpoint.reason)}`
     $('checkpoint-preview').innerHTML = cleanHTML(checkpoint.html)
     for (const anchor of $('checkpoint-preview').querySelectorAll('a')) anchor.removeAttribute('href')
     $('restore-checkpoint').disabled = false
     for (const button of $('checkpoint-list').querySelectorAll('button')) button.setAttribute('aria-pressed', String(button.dataset.id === checkpoint.id))
   }
-  async function renderHistory() {
+  async function renderHistory(preferredId) {
     const checkpoints = await library.listCheckpoints(room)
     const list = $('checkpoint-list'); list.replaceChildren()
     selectedCheckpoint = undefined; $('restore-checkpoint').disabled = true
-    $('checkpoint-preview').replaceChildren(); $('checkpoint-details').textContent = 'Selecione uma versão para conferir o conteúdo.'
+    $('checkpoint-preview').replaceChildren(); $('checkpoint-details').textContent = t('selectVersion')
     $('checkpoint-empty').hidden = !!checkpoints.length
     for (const checkpoint of checkpoints) {
       const li = document.createElement('li'); const button = document.createElement('button')
       button.type = 'button'; button.dataset.id = checkpoint.id; button.setAttribute('aria-pressed', 'false')
-      button.textContent = `${date(checkpoint.createdAt)} · ${checkpoint.reason}`
+      button.textContent = `${date(checkpoint.createdAt)} · ${localizeMessage(checkpoint.reason)}`
       button.addEventListener('click', () => preview(checkpoint)); li.append(button); list.append(li)
     }
-    if (checkpoints[0]) preview(checkpoints[0])
+    const selected = checkpoints.find(item => item.id === preferredId) || checkpoints[0]
+    if (selected) preview(selected)
   }
   action('history', async () => {
     await capture('Ao abrir o histórico'); await renderHistory(); $('history-dialog').showModal()
   })
   action('checkpoint-now', async () => {
-    await capture('Versão manual'); toast('Versão guardada neste navegador.')
+    await capture('Versão manual'); toast(t('versionSaved'))
   })
   action('restore-checkpoint', async () => {
     if (!selectedCheckpoint) return
-    await newDocument(`${title} — recuperado`, selectedCheckpoint.update)
+    await newDocument(t('recoveredTitle', { title }), selectedCheckpoint.update)
   })
 
   function preparePrint() {
@@ -142,6 +151,11 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   window.addEventListener('afterprint', () => $('print-output').replaceChildren())
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && dirty && ready) capture('Ao sair da aba').catch(warning)
+  })
+  onLanguageChange(() => {
+    updateTitle(title); updateCheckpointStatus()
+    if ($('documents-dialog').open) renderDocuments().catch(warning)
+    if ($('history-dialog').open) renderHistory(selectedCheckpoint?.id).catch(warning)
   })
   return {
     changed,

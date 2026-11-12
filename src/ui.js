@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Paulo Santos
+import { t, onLanguageChange } from './i18n.js'
 export function initializeUI() {
   const menus = [...document.querySelectorAll('.command-menu')]
   const closeMenus = except => {
@@ -25,7 +26,7 @@ export function initializeUI() {
   const preference = window.matchMedia('(prefers-color-scheme: dark)')
   const isDark = () => document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && preference.matches)
   function describeTheme() {
-    const label = isDark() ? 'Ativar tema claro' : 'Ativar tema escuro'
+    const label = t(isDark() ? 'lightTheme' : 'darkTheme')
     themeButton.setAttribute('aria-label', label); themeButton.title = label
     themeButton.setAttribute('aria-pressed', String(isDark()))
   }
@@ -36,5 +37,6 @@ export function initializeUI() {
     describeTheme()
   })
   preference.addEventListener('change', describeTheme)
+  onLanguageChange(describeTheme)
   describeTheme()
 }

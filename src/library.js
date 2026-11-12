@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Paulo Santos
+import { t } from './i18n.js'
 
 export const PUBLIC_ROOM = 'caderno-publico'
 export const MAX_CHECKPOINTS = 20
 export const MAX_HISTORY_BYTES = 20 * 1024 * 1024
 const validRoom = room => typeof room === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(room)
 export function documentTitle(title) {
-  return String(title || '').trim().slice(0, 100) || 'Documento sem título'
+  return String(title || '').trim().slice(0, 100) || t('untitled')
 }
 export function documentURL(room, base) {
   if (!validRoom(room)) throw new Error('Sala inválida.')
@@ -77,7 +78,7 @@ export function createLibrary(indexedDB, databaseName = 'entrelinhas-library-v1'
         store.get(room).onsuccess = event => {
           const previous = event.target.result
           const now = Date.now()
-          const value = { ...previous, room, title: title === undefined && previous ? previous.title : documentTitle(title || (room === PUBLIC_ROOM ? 'Nosso caderno compartilhado' : `Sala ${room}`)), createdAt: previous?.createdAt || now, updatedAt: now }
+          const value = { ...previous, room, title: title === undefined && previous ? previous.title : documentTitle(title || (room === PUBLIC_ROOM ? t('publicTitle') : t('roomTitle', { room }))), createdAt: previous?.createdAt || now, updatedAt: now }
           store.put(value); done(value)
         }
       })

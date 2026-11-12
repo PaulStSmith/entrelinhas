@@ -36,10 +36,12 @@ import { findMatches } from './search.js'
 import { createLibrary } from './library.js'
 import { createWorkspace } from './workspace.js'
 import { initializeUI } from './ui.js'
+import { initializeI18n, t, localizeMessage, onLanguageChange, formatNumber } from './i18n.js'
 import './style.css'
 import './workspace.css'
 
 const $ = id => document.getElementById(id)
+initializeI18n()
 initializeUI()
 const signaling = import.meta.env.VITE_SIGNALING_URL || 'wss://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net'
 const requestedRoom = new URL(location.href).searchParams.get('sala')
@@ -63,8 +65,8 @@ const colors = ['#216957', '#a94e37', '#5d5aa5', '#936416', '#256d94']
 const color = colors[crypto.getRandomValues(new Uint32Array(1))[0] % colors.length]
 let savedName
 try { savedName = localStorage.getItem('entrelinhas-name') } catch {}
-$('name').value = savedName || `Pessoa ${Math.floor(Math.random() * 900 + 100)}`
-function identity() { return { name: $('name').value.trim() || 'Pessoa anônima', color } }
+$('name').value = savedName || t('person', { number: Math.floor(Math.random() * 900 + 100) })
+function identity() { return { name: $('name').value.trim() || t('anonymous'), color } }
 function updateIdentity() {
   provider.awareness.setLocalState({ ...provider.awareness.getLocalState(), user: identity() })
   try { localStorage.setItem('entrelinhas-name', identity().name) } catch {}
@@ -80,7 +82,7 @@ editor = new Editor({
     CollaborationCaret.configure({ provider, user: identity() })
   ],
   editorProps: {
-    attributes: { role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Conteúdo do documento compartilhado', spellcheck: 'true', 'data-placeholder': 'Comece uma ideia. Convide outra pessoa para continuar…' },
+    attributes: { role: 'textbox', 'aria-multiline': 'true', 'aria-label': t('sharedContent'), spellcheck: 'true', 'data-placeholder': t('placeholder') },
     transformPastedHTML: cleanHTML
   },
   onUpdate: () => { if (!editor) return; updateStats(); updateFileStatus(); activeMatch = null; workspace?.changed() },
@@ -91,7 +93,7 @@ workspace = createWorkspace({ editor, doc, library, room, cleanHTML, toast, isRe
 function updateStats() {
   const content = editor.getText()
   const words = content.trim() ? content.trim().split(/\s+/u).length : 0
-  $('stats').textContent = `${words} ${words === 1 ? 'palavra' : 'palavras'} · ${content.length} caracteres`
+  $('stats').textContent = `${t(words === 1 ? 'wordOne' : 'wordMany', { count: formatNumber(words) })} · ${t(content.length === 1 ? 'characterOne' : 'characters', { count: formatNumber(content.length) })}`
 }
 function updateFormat() {
   // O evento inicial pode ocorrer antes da atribuição da instância.
@@ -117,11 +119,11 @@ $('name').addEventListener('input', updateIdentity)
 
 function updateStatus() {
   $('offline-banner').hidden = !disconnected
-  $('connection').textContent = disconnected ? 'Reconectar' : 'Simular desconexão'
+  $('connection').textContent = t(disconnected ? 'reconnect' : 'disconnect')
   $('connection').setAttribute('aria-pressed', String(disconnected))
   $('status-dot').classList.toggle('offline', disconnected || !signalReachable)
-  const peers = peerCount ? `${peerCount} ${peerCount === 1 ? 'conexão WebRTC' : 'conexões WebRTC'}` : localPeers ? `${localPeers} ${localPeers === 1 ? 'aba local conectada' : 'abas locais conectadas'}` : signalReachable ? 'Aguardando participantes' : 'Sinalização indisponível · edição local'
-  $('status').textContent = `${disconnected ? 'Desconectado · edição local' : peers} · ${storageFailed ? 'armazenamento local indisponível' : storageReady ? 'armazenamento local ativo' : 'abrindo armazenamento local'}`
+  const peers = peerCount ? t(peerCount === 1 ? 'peerOne' : 'peerMany', { count: formatNumber(peerCount) }) : localPeers ? t(localPeers === 1 ? 'tabOne' : 'tabMany', { count: formatNumber(localPeers) }) : t(signalReachable ? 'waiting' : 'signalUnavailable')
+  $('status').textContent = `${disconnected ? t('disconnected') : peers} · ${t(storageFailed ? 'storageUnavailable' : storageReady ? 'storageActive' : 'storageOpening')}`
 }
 function updateParticipants() {
   $('participants').replaceChildren()
@@ -130,7 +132,7 @@ function updateParticipants() {
     if (typeof state?.user?.name !== 'string') continue
     const badge = document.createElement('span'); badge.className = 'avatar'
     badge.textContent = state.user.name.slice(0, 2).toUpperCase()
-    badge.title = `${state.user.name.slice(0, 32)}${id === doc.clientID ? ' (você)' : ''}`
+    badge.title = `${state.user.name.slice(0, 32)}${id === doc.clientID ? ` (${t('you')})` : ''}`
     badge.setAttribute('aria-label', badge.title); badge.style.backgroundColor = colors[id % colors.length]
     $('participants').append(badge)
   }
@@ -138,7 +140,7 @@ function updateParticipants() {
 provider.on('peers', ({ webrtcPeers, bcPeers }) => { peerCount = webrtcPeers.length; localPeers = bcPeers.length; updateStatus() })
 provider.awareness.on('change', updateParticipants)
 persistence.whenSynced.then(() => { storageReady = true; updateStats(); updateStatus(); workspace.start() }).catch(() => {
-  storageFailed = true; updateStatus(); toast('Armazenamento local indisponível. Salve uma cópia antes de fechar.')
+  storageFailed = true; updateStatus(); toast(t('storageWarning'))
 })
 $('connection').addEventListener('click', () => {
   disconnected = !disconnected
@@ -154,12 +156,12 @@ async function checkSignaling() {
   updateStatus()
 }
 function toast(message) {
-  $('toast').textContent = message; $('toast').hidden = false
+  $('toast').textContent = localizeMessage(message); $('toast').hidden = false
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true }, 5000)
 }
 $('share').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(location.href); toast('Link copiado. Convide alguém para escrever com você.') }
-  catch { toast('Copie o endereço da barra do navegador para compartilhar.') }
+  try { await navigator.clipboard.writeText(location.href); toast(t('linkCopied')) }
+  catch { toast(t('copyAddress')) }
 })
 
 // Arquivos permanecem locais. Somente seu conteúdo importado entra no CRDT.
@@ -167,7 +169,7 @@ function snapshot() { return JSON.stringify(editor.getJSON()) }
 function updateFileStatus() {
   const changed = lastSaved !== null && lastSaved !== snapshot()
   const name = fileHandle?.name || fileName
-  $('file-status').textContent = lastSaved === null ? 'Cópia no navegador · salve em HTML para guardar o arquivo' : `${name} · ${changed ? 'alterações não salvas no arquivo' : fileHandle ? 'arquivo salvo' : 'cópia importada ou baixada' }${/\.txt$/i.test(name) ? ' · TXT sem formatação' : ''}`
+  $('file-status').textContent = lastSaved === null ? t('browserCopy') : `${name} · ${t(changed ? 'unsaved' : fileHandle ? 'fileSaved' : 'importedCopy')}${/\.txt$/i.test(name) ? ` · ${t('plainTXT')}` : ''}`
   $('file-status').title = $('file-status').textContent
 }
 function htmlDocument() {
@@ -184,21 +186,21 @@ async function saveFile(saveAs = false) {
       const version = snapshot()
       await writeTextFile(handle, content)
       fileHandle = handle; fileName = handle.name; lastSaved = version
-      toast('Arquivo salvo no computador.')
+      toast(t('savedOnComputer'))
     } else {
       // Sem File System Access, salvar oferece uma nova cópia por download.
       downloadText(htmlDocument(), 'entrelinhas.html', 'text/html')
       lastSaved = snapshot(); fileName = 'entrelinhas.html'
-      toast('Cópia HTML enviada aos downloads. Este navegador não grava diretamente no arquivo original.')
+      toast(t('downloadFallback'))
     }
     updateFileStatus()
-  } catch (error) { if (error.name !== 'AbortError') toast(`Não foi possível salvar: ${error.message}`) }
+  } catch (error) { if (error.name !== 'AbortError') toast(t('saveError', { error: localizeMessage(error.message) })) }
   finally { busy = false }
 }
 $('save-file').addEventListener('click', () => saveFile())
 $('save-as').addEventListener('click', () => saveFile(true))
-$('download-html').addEventListener('click', () => { downloadText(htmlDocument(), 'entrelinhas.html', 'text/html'); toast('Cópia HTML baixada com formatação.') })
-$('download').addEventListener('click', () => { downloadText(editor.getText(), 'entrelinhas.txt'); toast('Cópia TXT baixada sem formatação.') })
+$('download-html').addEventListener('click', () => { downloadText(htmlDocument(), 'entrelinhas.html', 'text/html'); toast(t('htmlDownloaded')) })
+$('download').addEventListener('click', () => { downloadText(editor.getText(), 'entrelinhas.txt'); toast(t('textDownloaded')) })
 $('open-file').addEventListener('click', () => { $('file-input').value = ''; $('file-input').click() })
 $('file-input').addEventListener('change', async () => {
   const file = $('file-input').files[0]
@@ -219,8 +221,8 @@ $('import-dialog').addEventListener('close', async () => {
       editor.commands.setContent(imported.content)
       fileName = /\.html?$/i.test(imported.name) ? imported.name.replace(/\.htm$/i, '.html') : imported.name.replace(/\.[^.]+$/, '') + '.html'
       fileHandle = null; lastSaved = snapshot(); updateFileStatus()
-      toast('Arquivo aberto e conteúdo compartilhado. A primeira gravação pedirá um destino.')
-    } catch { toast('Não foi possível guardar a versão anterior. O conteúdo não foi substituído; baixe uma cópia HTML.') }
+      toast(t('fileOpened'))
+    } catch { toast(t('importFailed')) }
   }
   pendingImport = null
 })
@@ -228,25 +230,26 @@ $('import-dialog').addEventListener('close', async () => {
 function openSearch() { if (!$('search-dialog').open) $('search-dialog').showModal(); $('search-query').focus() }
 function searchResults() { return findMatches(editor.state.doc, $('search-query').value) }
 $('search').addEventListener('click', openSearch)
-$('search-query').addEventListener('input', () => { activeMatch = null; $('search-result').textContent = `${searchResults().length} ocorrência(s)` })
+function matchCount() { const count = searchResults().length; return t(count === 1 ? 'matchOne' : 'matches', { count: formatNumber(count) }) }
+$('search-query').addEventListener('input', () => { activeMatch = null; $('search-result').textContent = matchCount() })
 $('find-next').addEventListener('click', () => {
   const matches = searchResults()
   const next = matches.find(match => match.from >= (activeMatch?.to ?? editor.state.selection.to)) || matches[0]
   if (next) { editor.commands.setTextSelection(next); editor.commands.scrollIntoView(); activeMatch = next }
-  $('search-result').textContent = `${matches.length} ocorrência(s)${next ? ' · seleção atualizada no documento' : ''}`
+  $('search-result').textContent = `${matchCount()}${next ? ` · ${t('selectionUpdated')}` : ''}`
 })
 $('replace-one').addEventListener('click', () => {
   const matches = searchResults()
   const match = activeMatch && matches.find(m => m.from === activeMatch.from && m.to === activeMatch.to)
-  if (!match) { $('search-result').textContent = 'Clique em Próximo para selecionar uma ocorrência atual.'; return }
+  if (!match) { $('search-result').textContent = t('chooseMatch'); return }
   const replacement = $('replace-query').value
   editor.commands.command(({ tr }) => { tr.insertText(replacement, match.from, match.to); return true })
-  activeMatch = null; $('search-result').textContent = `Substituição aplicada · ${searchResults().length} ocorrência(s) restantes`
+  activeMatch = null; $('search-result').textContent = t('replacedOne', { count: formatNumber(searchResults().length) })
 })
 $('replace-all').addEventListener('click', () => {
   const matches = searchResults(); const replacement = $('replace-query').value
   editor.commands.command(({ tr }) => { for (const match of matches.toReversed()) tr.insertText(replacement, match.from, match.to); return matches.length > 0 })
-  activeMatch = null; $('search-result').textContent = `${matches.length} substituição(ões) aplicada(s)`
+  activeMatch = null; $('search-result').textContent = t('replacedAll', { count: formatNumber(matches.length) })
 })
 document.addEventListener('keydown', event => {
   if (!(event.ctrlKey || event.metaKey) || event.altKey) return
@@ -256,6 +259,12 @@ document.addEventListener('keydown', event => {
   if (key === 'f' && !$('import-dialog').open) { event.preventDefault(); openSearch() }
 })
 updateStats(); updateParticipants(); updateStatus(); updateFileStatus(); updateFormat(); checkSignaling()
-if (initialError) toast('Biblioteca local indisponível. Baixe uma cópia HTML antes de fechar.')
+if (initialError) toast(t('libraryUnavailable'))
+onLanguageChange(() => {
+  editor.setOptions({ editorProps: { ...editor.options.editorProps, attributes: { ...editor.options.editorProps.attributes, 'aria-label': t('sharedContent'), 'data-placeholder': t('placeholder') } } })
+  updateStats(); updateStatus(); updateFileStatus(); updateParticipants()
+  if ($('search-dialog').open) $('search-result').textContent = matchCount()
+  $('toast').hidden = true
+})
 setInterval(checkSignaling, 30000)
 window.addEventListener('online', checkSignaling)
