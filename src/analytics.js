@@ -22,7 +22,8 @@ export function initializeAnalytics(target = window) {
   } catch {}
   target.gtag('js', new Date())
   target.gtag('set', page)
-  target.gtag('config', MEASUREMENT_ID, page)
+  target.gtag('config', MEASUREMENT_ID, { ...page, send_page_view: false })
+  target.gtag('event', 'page_view', { ...page, send_to: MEASUREMENT_ID })
   const script = target.document.createElement('script')
   script.async = true
   script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`
