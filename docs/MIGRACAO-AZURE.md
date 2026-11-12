@@ -33,3 +33,15 @@ Para reverter somente a versão da interface Azure, reverta o commit corresponde
 ## Limites de custo
 
 O frontend usa explicitamente o SKU `Free` e não depende de domínio personalizado no App Service. A sinalização permanece no plano F1 existente. Não habilitar Standard, Dedicated, Front Door ou outros serviços pagos como parte desta migração. Quotas gratuitas e ausência de persistência central continuam sendo limitações do projeto.
+
+## Verificação concluída em 2026-11-12
+
+- Os oito testes passaram; a compilação de produção e o pacote mínimo da sinalização foram conferidos. O servidor empacotado respondeu ao teste HTTP local.
+- Os workflows Azure de interface e sinalização concluíram com sucesso. O backend usa OIDC com o subject exato, qualificado por IDs, registrado no README; a autenticação básica continua desativada.
+- O domínio chegou ao estado `Ready` no Azure. O certificado e a interface foram verificados diretamente no destino antes da troca do CNAME. Depois da troca, DNS público e HTTPS passaram na verificação normal.
+- Duas origens distintas, `editor.byteforge.biz` e o hostname Azure, estabeleceram uma conexão WebRTC na sala de teste `migracao-azure-20261112-check`. A segunda origem recebeu o documento da primeira. Edições diferentes feitas durante a desconexão convergiram após reconectar. Os nomes dos cursores foram excluídos da comparação do conteúdo.
+- A réplica local foi recuperada após recarregar a interface Azure. Isso verifica persistência nessa origem de teste; não constitui inspeção dos dados privados de outros navegadores.
+- O workflow Pages anterior foi desativado e seu README passou a indicar `PaulStSmith/entrelinhas`. Seu histórico e a última publicação foram mantidos. O Pages ainda não tinha certificado para o domínio personalizado no momento da migração; um retorno exige resolver esse certificado antes de trocar o DNS.
+- Os SKUs confirmados após a migração são `Free` para a interface e `F1` para a sinalização. Não houve mudança nos nomes das salas ou nas chaves IndexedDB da aplicação.
+
+A validação WebRTC usou duas origens no mesmo ambiente de navegador. O teste entre dispositivos em redes físicas diferentes continua pendente.
