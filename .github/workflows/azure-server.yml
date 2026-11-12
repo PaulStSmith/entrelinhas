@@ -1,0 +1,40 @@
+name: Publicar sinalização no Azure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - 'scripts/package-server.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/azure-server.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run package:server
+      - uses: azure/webapps-deploy@v3
+        with:
+          app-name: editor-crdt-byteforge
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .azure-deploy/staging
+      - name: Conferir sinalização
+        shell: pwsh
+        run: ./scripts/check-signaling.ps1

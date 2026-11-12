@@ -7,3 +7,4 @@ dist/
 data/
 ~$*.docx
 .entrelinhas-repo/
+.tools/
