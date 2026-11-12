@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parent
 QA = ROOT / '.docx-qa'
 QA.mkdir(exist_ok=True)
 
-# Diagrama estático da arquitetura proposta, sem dependência de imagens remotas.
+# Diagrama estático da arquitetura implementada, sem dependência de imagens remotas.
 im = Image.new('RGB', (1600, 720), 'white')
 draw = ImageDraw.Draw(im)
 font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 29)
@@ -52,7 +52,7 @@ def arrow(a,b,color='#555555'):
 box((555,20,1045,135),'Azure Static Web Apps\nHTML CSS e JavaScript')
 box((90,260,620,415),'Navegador A\nCRDT e armazenamento local')
 box((980,260,1510,415),'Navegador B\nCRDT e armazenamento local')
-box((555,560,1045,695),'Sinalização externa\nEstabelecimento de conexões')
+box((555,560,1045,695),'Azure App Service F1\nSinalização WebSocket')
 arrow((590,135),(360,260)); arrow((1010,135),(1240,260))
 draw.text((800,190),'Entrega da interface',font=small,fill='black',anchor='mm')
 arrow((630,345),(970,345));arrow((970,325),(630,325))
@@ -84,13 +84,13 @@ for name in ['List Bullet','List Number']:
     doc.styles[name].font.name='Arial';doc.styles[name].font.size=Pt(10.5)
     doc.styles[name].paragraph_format.space_after=Pt(5)
 doc.core_properties.title='Editor colaborativo distribuído com CRDT'
-doc.core_properties.subject='Arquitetura proposta para edição colaborativa em JavaScript com hospedagem no Azure Static Web Apps'
+doc.core_properties.subject='Arquitetura implementada para edição colaborativa em JavaScript com hospedagem no Azure Static Web Apps'
 doc.core_properties.author='Paulo Santos'
 doc.core_properties.keywords='CRDT, Yjs, WebRTC, Azure Static Web Apps, sistemas distribuídos'
 doc.add_paragraph('Editor colaborativo distribuído com CRDT','Title')
-doc.add_paragraph('Proposta de sistema distribuído em JavaScript com hospedagem no Azure Static Web Apps','Subtitle')
-doc.add_paragraph('Arquitetura Reativa  |  11 de novembro de 2026')
-doc.add_paragraph('Propomos um editor público em que os participantes alteram o mesmo documento a partir de navegadores independentes. A escolha de CRDT permite edição local durante desconexões e convergência após a sincronização. O Azure Static Web Apps hospedará a interface; a comunicação entre participantes utilizará WebRTC com sinalização externa.')
+doc.add_paragraph('Sistema distribuído em JavaScript com hospedagem no Azure Static Web Apps','Subtitle')
+doc.add_paragraph('Arquitetura Reativa  |  Entrelinhas no Azure')
+doc.add_paragraph('O projeto implementa um editor público em que os participantes alteram o mesmo documento a partir de navegadores independentes. A escolha de CRDT permite edição local durante desconexões e convergência após a sincronização. O Azure Static Web Apps hospeda a interface; a comunicação entre participantes utiliza WebRTC com sinalização no Azure App Service F1.')
 
 def add_text(p,text):
     # Mantém links utilizáveis no Word e formatação de ênfase do texto de origem.
@@ -138,7 +138,7 @@ while i<len(lines):
     line=lines[i].strip();i+=1
     if not line:continue
     if line.startswith('Este documento descreve'):
-        line='O documento apresenta o cenário, a justificativa da estratégia, os riscos das alternativas e o fluxo de uma operação, além da arquitetura e dos critérios de validação propostos.'
+        line='O documento apresenta o cenário, a justificativa da estratégia, os riscos das alternativas e o fluxo de uma operação, além da arquitetura e dos critérios de validação da implementação.'
     if line.startswith('```'):
         while i<len(lines) and not lines[i].startswith('```'):i+=1
         i+=1

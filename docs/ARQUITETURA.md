@@ -2,9 +2,9 @@
 
 ## 1. Objetivo e escopo
 
-Este projeto propõe um editor de texto em JavaScript no qual qualquer pessoa com o endereço do site pode acessar e editar o mesmo documento. A interface é hospedada no Azure Static Web Apps Free.
+Este projeto implementa um editor de texto em JavaScript no qual qualquer pessoa com o endereço do site pode acessar e editar o mesmo documento. A interface é hospedada no Azure Static Web Apps Free.
 
-Esta seção descreve a arquitetura e responde aos itens 2 a 5 da atividade. Os comandos, a implementação e a publicação estão descritos nas seções iniciais deste README.
+Este documento descreve a arquitetura implementada e responde aos itens 2 a 5 da atividade. Consulte o [README](../README.md) para executar e validar o projeto e o [guia Azure](AZURE.md) para recursos, publicação e recuperação.
 
 ## 2. Cenário prático de sistema distribuído
 
@@ -16,7 +16,7 @@ Independência significa que um nó pode continuar editando sua réplica durante
 
 ## 3. Estratégia escolhida: CRDT
 
-A estratégia será CRDT, usando uma estrutura própria para texto. As operações carregam informações que permitem combinar edições concorrentes de forma determinística. A aplicação não deve implementar colaboração apenas substituindo o texto inteiro pela última versão recebida, pois isso pode sobrescrever edições concorrentes.
+A estratégia adotada é CRDT, usando a árvore compartilhada do Yjs para texto formatado. As operações carregam informações que permitem combinar edições concorrentes de forma determinística. A aplicação não deve implementar colaboração apenas substituindo o texto inteiro pela última versão recebida, pois isso pode sobrescrever edições concorrentes.
 
 ### Consistência
 
@@ -38,7 +38,7 @@ Uma edição aparece imediatamente na interface, sem aguardar quorum ou aquisiç
 
 O Azure Static Web Apps entrega os arquivos estáticos de HTML, CSS e JavaScript. A sinalização WebSocket roda separadamente no Azure App Service F1. Ambos são publicados a partir deste repositório.
 
-A arquitetura proposta é:
+A arquitetura em produção é:
 
 ```text
            Azure Static Web Apps
@@ -49,21 +49,21 @@ A arquitetura proposta é:
           réplica local      réplica local
                 troca de atualizações por WebRTC
 
-          Ambos acessam um serviço externo
-          de sinalização para iniciar conexões.
+          Azure App Service F1
+          sinaliza o encontro dos participantes.
 ```
 
-### Componentes planejados
+### Componentes implementados
 
 | Componente | Responsabilidade |
 | --- | --- |
-| HTML, CSS e JavaScript | Exibir o editor e os estados de conexão. |
+| HTML, CSS, JavaScript e Tiptap | Exibir o editor WYSIWYG e os estados de conexão. |
 | Yjs | Representar o documento com CRDT e combinar atualizações. |
 | y-webrtc | Transportar atualizações entre participantes por WebRTC. |
-| Serviço externo de sinalização | Ajudar os participantes a se encontrarem e estabelecerem conexões. |
+| Sinalização no Azure App Service F1 | Ajudar os participantes a se encontrarem e estabelecerem conexões. |
 | y-indexeddb | Persistir a réplica no armazenamento local do navegador. |
 
-Todos usarão o mesmo identificador de sala, associado ao documento compartilhado. O editor precisará de uma integração que traduza inserções e exclusões para o documento CRDT e reflita atualizações remotas na interface.
+Os participantes de cada documento usam o mesmo identificador de sala, selecionado pelo parâmetro `sala`; o padrão é `caderno-publico`. A integração Tiptap/Yjs traduz as edições para o documento CRDT e reflete atualizações remotas na interface. As salas e a persistência local usam o prefixo `entrelinhas-rich-v2-`.
 
 O CRDT define como combinar as alterações; o WebRTC define como transportá-las. O serviço de sinalização ajuda a iniciar as conexões e não determina qual edição vence.
 
@@ -73,11 +73,11 @@ O CRDT define como combinar as alterações; o WebRTC define como transportá-la
 - A sinalização é disponibilizada no Azure App Service F1, separada da hospedagem estática. O servidor foi publicado e a conexão WebRTC foi verificada no navegador.
 - Redes restritivas podem exigir infraestrutura de travessia de rede, incluindo TURN. A conectividade deverá ser testada entre redes diferentes.
 - Se a sinalização ficar indisponível, novas conexões podem falhar. Conexões já estabelecidas podem continuar funcionando enquanto seu caminho de rede permanecer disponível.
-- A proposta inicial não possui uma cópia central durável. Um participante novo precisa alcançar uma réplica que contenha o documento para recuperar seu conteúdo atualizado.
+- A aplicação não possui uma cópia central durável. Um participante novo precisa alcançar uma réplica que contenha o documento para recuperar seu conteúdo atualizado.
 - O armazenamento local não é backup: sua limpeza pode apagar a única cópia de alterações ainda não compartilhadas. Uma evolução possível é adicionar persistência remota.
 - Abas no mesmo computador servem para demonstração inicial, mas compartilham infraestrutura e podem compartilhar armazenamento. A validação deve incluir dispositivos distintos.
 
-Uma alternativa seria manter a interface no Azure Static Web Apps e usar um servidor WebSocket externo para sincronização. Isso também permite réplicas independentes para edição local, mas concentra o transporte no servidor. A proposta deste documento adota WebRTC para explorar a comunicação entre os participantes.
+Uma alternativa seria manter a interface no Azure Static Web Apps e usar um servidor WebSocket externo para sincronização. Isso também permite réplicas independentes para edição local, mas concentra o transporte no servidor. A implementação adota WebRTC para explorar a comunicação entre os participantes.
 
 ## 5. Análise de riscos de outras abordagens
 
@@ -115,11 +115,11 @@ O resultado esperado é a preservação das inserções concorrentes e a converg
 5. Abrir um navegador sem dados locais enquanto outra réplica está acessível e verificar a sincronização inicial.
 6. Testar a comunicação entre redes diferentes e registrar eventuais limitações de conectividade.
 
-O roteiro inclui a validação entre dispositivos e redes físicas diferentes, que ainda precisa ser executada. As verificações concluídas estão descritas no início deste README.
+A sincronização e a convergência offline foram verificadas entre o domínio público e o hostname Azure, evitando BroadcastChannel entre origens. O teste entre dispositivos em redes físicas diferentes continua pendente. As verificações concluídas estão no [guia Azure](AZURE.md).
 
 ## 8. Acesso público e limites do protótipo
 
-O protótipo terá um único documento público, sem autenticação. Qualquer participante que acessar a sala poderá alterar ou apagar texto. CRDT não substitui autorização, moderação ou histórico de recuperação.
+O editor oferece uma sala pública padrão e salas selecionadas pelo parâmetro `sala`, todas sem autenticação. Qualquer participante que acessar a sala poderá alterar ou apagar texto. CRDT não substitui autorização, moderação ou histórico de recuperação.
 
 O conteúdo é representado por uma árvore CRDT formatada, com HTML de importação sanitizado e limitado ao esquema do editor. Scripts de arquivos importados não são executados. O editor apresenta um indicador de conexão, distinguindo edição local de comunicação ativa com outros nós.
 
