@@ -67,6 +67,12 @@ Os participantes de cada documento usam o mesmo identificador de sala, seleciona
 
 O CRDT define como combinar as alterações; o WebRTC define como transportá-las. O serviço de sinalização ajuda a iniciar as conexões e não determina qual edição vence.
 
+### Idioma da interface
+
+As traduções de inglês, português, espanhol e francês são entregues com a aplicação estática. A escolha inicial segue a lista de idiomas do navegador, reconhece variantes regionais e usa inglês como fallback. Uma escolha manual fica no armazenamento local e pode ser removida pelo modo automático.
+
+A troca atualiza o idioma HTML, as legendas, as descrições acessíveis e os formatos de datas e números sem recarregar o editor. A atualização se limita à interface previamente identificada e a mensagens geradas pela aplicação. Conteúdo CRDT, nomes salvos, nomes de participantes, identificadores de salas e chaves de persistência não são traduzidos nem modificados.
+
 ### Biblioteca e recuperação local
 
 O banco IndexedDB `entrelinhas-library-v1` mantém os nomes dos documentos, a lista de salas e os checkpoints locais. As réplicas compartilhadas continuam nos bancos `entrelinhas-rich-v2-*`, preservando compatibilidade com os links e documentos existentes. Os nomes são locais e não fazem parte do documento compartilhado.

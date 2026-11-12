@@ -48,6 +48,14 @@ A barra de formatação acompanha a rolagem. Em telas pequenas, ela desliza hori
 
 O botão de tema no topo alterna entre claro e escuro. A preferência fica neste navegador; antes de escolher, o editor acompanha o tema do sistema. A impressão continua usando uma folha branca, independentemente do tema de edição.
 
+### Idioma
+
+O seletor de bandeiras no canto superior direito oferece **English**, **Português**, **Español** e **Français**, com nomes acessíveis junto às bandeiras SVG. Sem escolha manual, o editor procura o primeiro idioma compatível na lista ordenada do navegador. Variantes como `en-US`, `pt-PT`, `es-MX` e `fr-CA` usam a tradução do respectivo idioma; se nenhum for compatível, o padrão é inglês.
+
+A escolha manual fica na preferência local `entrelinhas-language`. **Usar idioma do navegador** remove essa escolha e retorna à detecção automática. A troca acontece sem recarregar, preservando conteúdo, seleção, nomes de documentos, nomes de participantes, links e salas. O idioma altera a interface, as mensagens, os tooltips e os formatos de datas e números; não traduz os documentos. Uma preferência de idioma diferente em outro dispositivo não altera a colaboração.
+
+As traduções ficam em `src/messages.js`; a seleção e a aplicação da interface ficam em `src/i18n.js`. Não há serviço externo de tradução. Os testes verificam cobertura de legendas e atributos acessíveis, parâmetros das quatro traduções, detecção regional, preferência persistida e preservação do conteúdo durante a troca.
+
 ## Documentos e histórico local
 
 Abra **Meus documentos** para criar uma sala com um nome, filtrar a lista e reabrir documentos. **Renomear** altera o nome somente neste navegador; o link da sala continua igual. **Duplicar** cria outra sala com o conteúdo e a formatação atuais. Réplicas de salas anteriores também aparecem quando o navegador oferece enumeração de bancos IndexedDB; nos demais, basta abrir o link de uma sala para cadastrá-la na biblioteca.
@@ -85,7 +93,7 @@ npm test
 npm run build
 ```
 
-Os 14 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico e recuperação de cópias. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
+Os 20 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
 
 ## Publicação
 
