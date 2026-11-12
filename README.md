@@ -5,10 +5,10 @@ Editor WYSIWYG colaborativo distribuído com Tiptap, Yjs e WebRTC. Cada navegado
 ## Acessar o editor
 
 - **Site:** https://editor.byteforge.biz/
-- **Endereço original do GitHub Pages:** https://paulstsmith.github.io/editor-distribuido-crdt/
+- **Endereço Azure:** https://icy-mushroom-0b351a10f.5.azurestaticapps.net/
 - **Saúde da sinalização:** https://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net/health
-- **Novo repositório do código:** https://github.com/PaulStSmith/entrelinhas
-- **Repositório da publicação atual:** https://github.com/PaulStSmith/editor-distribuido-crdt
+- **Repositório único (interface e sinalização):** https://github.com/PaulStSmith/entrelinhas
+- **Repositório anterior (histórico):** https://github.com/PaulStSmith/editor-distribuido-crdt
 
 O documento padrão é público e compartilhado por todos os visitantes. Para uma demonstração isolada, use o mesmo parâmetro nos dois dispositivos, por exemplo `?sala=apresentacao`. O nome da sala não é senha nem controle de acesso.
 
@@ -63,19 +63,38 @@ Os oito testes verificam convergência com inserções e exclusões concorrentes
 
 ## Publicação
 
-O workflow `.github/workflows/pages.yml` testa, compila e publica a interface quando a branch `main` recebe alterações. A aplicação usa caminhos relativos, compatíveis com GitHub Pages em subdiretório.
+O repositório `PaulStSmith/entrelinhas` mantém a interface, a sinalização, os testes, os scripts de publicação e a documentação acadêmica. A consolidação preserva o histórico Git do repositório anterior e seu DOCX original. Não é necessário manter duas cópias do código.
 
-A publicação está vinculada a `PaulStSmith/editor-distribuido-crdt`. No novo repositório `PaulStSmith/entrelinhas`, esse workflow é ignorado para evitar disputar o mesmo domínio. O novo repositório começa com uma cópia limpa do código, sem os documentos Word do repositório original.
+A interface usa **Azure Static Web Apps Free**, recurso `entrelinhas-ui` em East US 2. Esse plano inclui domínio personalizado e certificado HTTPS gerenciado. O workflow `.github/workflows/azure-ui.yml` instala as dependências travadas, executa os testes, compila e publica `dist` em cada push para `main`. Pull requests executam os mesmos testes e compilação, sem publicar nem acessar credenciais de produção.
 
-O domínio `editor.byteforge.biz` usa um CNAME DNS direto na Cloudflare para `paulstsmith.github.io`. O script `configurar-https.ps1` usa o login existente do `gh`, aguarda a emissão do certificado por até uma hora, habilita a exigência de HTTPS e confere a página publicada. O token padrão do GitHub Actions não possui acesso para alterar essa configuração. O domínio principal de `byteforge.biz` é preservado.
+O domínio `editor.byteforge.biz` usa um CNAME DNS direto, sem proxy, na Cloudflare para `icy-mushroom-0b351a10f.5.azurestaticapps.net`. O TXT `_dnsauth.editor.byteforge.biz` valida a propriedade no Azure. `configurar-https.ps1` confere o estado do domínio e a resposta HTTPS. A configuração não altera o domínio principal de `byteforge.biz`.
 
-O servidor roda no Azure App Service Linux **Free F1**, em Canada Central, dentro de `rg-editor-crdt`. Para publicar alterações na sinalização, depois de `npm ci` e `az login`, execute:
+A migração mantém `https://editor.byteforge.biz`, o parâmetro `sala` e as chaves `entrelinhas-rich-v2-*`. Por isso, as réplicas IndexedDB existentes nessa origem continuam acessíveis. A URL alternativa do Azure é outra origem e possui armazenamento local separado; não deve substituir o endereço público nos links compartilhados.
+
+O servidor continua no Azure App Service Linux **Free F1**, recurso `editor-crdt-byteforge` em Canada Central. Ambos os recursos ficam em `rg-editor-crdt`, assinatura `Azure subscription 1` (`7e4e57e6-5275-4176-8e17-998e71c8c0db`). Os scripts informam a assinatura explicitamente para não usar outra assinatura ativa por engano.
+
+O workflow `.github/workflows/azure-server.yml` testa e publica a sinalização quando mudam o servidor, as dependências ou seu empacotador. `npm run package:server` gera somente `server/index.js`, `ws` e um manifesto mínimo em `.azure-deploy/staging`. A interface, os documentos acadêmicos e as credenciais não entram nesse pacote. Após publicar, o workflow confere `/health`. Os dois workflows também aceitam execução manual em Actions.
+
+Secrets do repositório, configurados em GitHub Actions:
+
+- `AZURE_STATIC_WEB_APPS_API_TOKEN`: token de implantação do recurso `entrelinhas-ui`.
+- `AZURE_WEBAPP_PUBLISH_PROFILE`: perfil de publicação de `editor-crdt-byteforge`.
+
+Para publicar manualmente a sinalização, depois de `npm ci` e `az login`, execute:
 
 ```powershell
 .\publicar-servidor.ps1
 ```
 
-O script publica somente `server/index.js`, o pacote `ws` instalado e um manifesto mínimo. Não publica credenciais nem o documento dos participantes. Não cria planos pagos ou recursos adicionais.
+O script usa o mesmo empacotador do workflow. Não cria planos pagos ou recursos adicionais. O frontend não usa o domínio personalizado do App Service; isso exigiria um plano pago.
+
+Para recriar apenas o recurso gratuito da interface, sem integração GitHub automática:
+
+```powershell
+az staticwebapp create --subscription 7e4e57e6-5275-4176-8e17-998e71c8c0db --resource-group rg-editor-crdt --name entrelinhas-ui --location eastus2 --sku Free
+```
+
+Um recurso recriado recebe outro hostname e token: atualize o secret, valide o domínio por TXT e confira a interface antes de trocar o CNAME. Consulte [docs/MIGRACAO-AZURE.md](docs/MIGRACAO-AZURE.md) para o procedimento de migração e retorno.
 
 ## Limitações
 
@@ -88,13 +107,13 @@ O script publica somente `server/index.js`, o pacote `ws` instalado e um manifes
 
 ## Documentação acadêmica
 
-A fundamentação completa está abaixo e em [docs/ARQUITETURA.md](docs/ARQUITETURA.md). O arquivo [DOCX no repositório original](https://github.com/PaulStSmith/editor-distribuido-crdt/blob/main/Documentacao_Editor_Colaborativo_CRDT.docx) registra a proposta original de arquitetura.
+A fundamentação completa está abaixo e em [docs/ARQUITETURA.md](docs/ARQUITETURA.md). O arquivo [DOCX original](Documentacao_Editor_Colaborativo_CRDT.docx) registra a proposta inicial com GitHub Pages e foi preservado sem alterações; a documentação Markdown descreve a hospedagem atual no Azure.
 
 # Editor colaborativo distribuído com CRDT
 
 ## 1. Objetivo e escopo
 
-Este projeto propõe um editor de texto em JavaScript no qual qualquer pessoa com o endereço do site pode acessar e editar o mesmo documento. A interface será hospedada no GitHub Pages.
+Este projeto propõe um editor de texto em JavaScript no qual qualquer pessoa com o endereço do site pode acessar e editar o mesmo documento. A interface é hospedada no Azure Static Web Apps Free.
 
 Esta seção descreve a arquitetura e responde aos itens 2 a 5 da atividade. Os comandos, a implementação e a publicação estão descritos nas seções iniciais deste README.
 
@@ -126,14 +145,14 @@ Se o site nunca tiver sido carregado naquele dispositivo, será necessário aces
 
 Uma edição aparece imediatamente na interface, sem aguardar quorum ou aquisição de um bloqueio remoto. As atualizações são transmitidas em segundo plano. A contrapartida é o custo de metadados, processamento e tráfego de sincronização, que deve ser medido na implementação.
 
-## 4. Arquitetura e hospedagem no GitHub Pages
+## 4. Arquitetura e hospedagem no Azure
 
-O GitHub Pages entrega arquivos estáticos de HTML, CSS e JavaScript. Ele hospedará a interface, mas não executará um servidor persistente de sincronização ou sinalização.
+O Azure Static Web Apps entrega os arquivos estáticos de HTML, CSS e JavaScript. A sinalização WebSocket roda separadamente no Azure App Service F1. Ambos são publicados a partir deste repositório.
 
 A arquitetura proposta é:
 
 ```text
-                 GitHub Pages
+           Azure Static Web Apps
             entrega HTML, CSS e JavaScript
                     /       \
                    v         v
@@ -161,15 +180,15 @@ O CRDT define como combinar as alterações; o WebRTC define como transportá-la
 
 ### Limites da solução
 
-- O GitHub Pages sozinho não fornece a infraestrutura de comunicação necessária para entrada automática de participantes.
-- A sinalização é disponibilizada no Azure App Service F1, fora do GitHub Pages. O servidor foi publicado e a conexão WebRTC foi verificada no navegador.
+- A hospedagem estática sozinha não fornece a sinalização necessária para entrada automática de participantes.
+- A sinalização é disponibilizada no Azure App Service F1, separada da hospedagem estática. O servidor foi publicado e a conexão WebRTC foi verificada no navegador.
 - Redes restritivas podem exigir infraestrutura de travessia de rede, incluindo TURN. A conectividade deverá ser testada entre redes diferentes.
 - Se a sinalização ficar indisponível, novas conexões podem falhar. Conexões já estabelecidas podem continuar funcionando enquanto seu caminho de rede permanecer disponível.
 - A proposta inicial não possui uma cópia central durável. Um participante novo precisa alcançar uma réplica que contenha o documento para recuperar seu conteúdo atualizado.
 - O armazenamento local não é backup: sua limpeza pode apagar a única cópia de alterações ainda não compartilhadas. Uma evolução possível é adicionar persistência remota.
 - Abas no mesmo computador servem para demonstração inicial, mas compartilham infraestrutura e podem compartilhar armazenamento. A validação deve incluir dispositivos distintos.
 
-Uma alternativa seria manter a interface no GitHub Pages e usar um servidor WebSocket externo para sincronização. Isso também permite réplicas independentes para edição local, mas concentra o transporte no servidor. A proposta deste documento adota WebRTC para explorar a comunicação entre os participantes.
+Uma alternativa seria manter a interface no Azure Static Web Apps e usar um servidor WebSocket externo para sincronização. Isso também permite réplicas independentes para edição local, mas concentra o transporte no servidor. A proposta deste documento adota WebRTC para explorar a comunicação entre os participantes.
 
 ## 5. Análise de riscos de outras abordagens
 
@@ -217,7 +236,7 @@ O conteúdo é representado por uma árvore CRDT formatada, com HTML de importa�
 
 ## 9. Referências técnicas
 
-- [GitHub Pages: hospedagem estática](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+- [Azure Static Web Apps: planos e domínio personalizado](https://learn.microsoft.com/en-us/azure/static-web-apps/plans)
 - [Yjs: tipos compartilhados e provedores de sincronização](https://github.com/yjs/yjs)
 - [y-webrtc: transporte e sinalização](https://github.com/yjs/y-webrtc)
 - [Yjs: persistência local e edição offline](https://docs.yjs.dev/getting-started/allowing-offline-editing)

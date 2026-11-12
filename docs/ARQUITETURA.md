@@ -2,9 +2,9 @@
 
 ## 1. Objetivo e escopo
 
-Este projeto propõe um editor de texto em JavaScript no qual qualquer pessoa com o endereço do site pode acessar e editar o mesmo documento. A interface será hospedada no GitHub Pages.
+Este projeto propõe um editor de texto em JavaScript no qual qualquer pessoa com o endereço do site pode acessar e editar o mesmo documento. A interface é hospedada no Azure Static Web Apps Free.
 
-Este documento descreve a arquitetura planejada e responde aos itens 2 a 5 da atividade. A implementação e a publicação ainda não foram realizadas.
+Esta seção descreve a arquitetura e responde aos itens 2 a 5 da atividade. Os comandos, a implementação e a publicação estão descritos nas seções iniciais deste README.
 
 ## 2. Cenário prático de sistema distribuído
 
@@ -34,14 +34,14 @@ Se o site nunca tiver sido carregado naquele dispositivo, será necessário aces
 
 Uma edição aparece imediatamente na interface, sem aguardar quorum ou aquisição de um bloqueio remoto. As atualizações são transmitidas em segundo plano. A contrapartida é o custo de metadados, processamento e tráfego de sincronização, que deve ser medido na implementação.
 
-## 4. Arquitetura e hospedagem no GitHub Pages
+## 4. Arquitetura e hospedagem no Azure
 
-O GitHub Pages entrega arquivos estáticos de HTML, CSS e JavaScript. Ele hospedará a interface, mas não executará um servidor persistente de sincronização ou sinalização.
+O Azure Static Web Apps entrega os arquivos estáticos de HTML, CSS e JavaScript. A sinalização WebSocket roda separadamente no Azure App Service F1. Ambos são publicados a partir deste repositório.
 
 A arquitetura proposta é:
 
 ```text
-                 GitHub Pages
+           Azure Static Web Apps
             entrega HTML, CSS e JavaScript
                     /       \
                    v         v
@@ -69,15 +69,15 @@ O CRDT define como combinar as alterações; o WebRTC define como transportá-la
 
 ### Limites da solução
 
-- O GitHub Pages sozinho não fornece a infraestrutura de comunicação necessária para entrada automática de participantes.
-- A sinalização deverá ser disponibilizada fora do GitHub Pages. Nenhum serviço específico foi provisionado ou validado nesta etapa.
+- A hospedagem estática sozinha não fornece a sinalização necessária para entrada automática de participantes.
+- A sinalização é disponibilizada no Azure App Service F1, separada da hospedagem estática. O servidor foi publicado e a conexão WebRTC foi verificada no navegador.
 - Redes restritivas podem exigir infraestrutura de travessia de rede, incluindo TURN. A conectividade deverá ser testada entre redes diferentes.
 - Se a sinalização ficar indisponível, novas conexões podem falhar. Conexões já estabelecidas podem continuar funcionando enquanto seu caminho de rede permanecer disponível.
 - A proposta inicial não possui uma cópia central durável. Um participante novo precisa alcançar uma réplica que contenha o documento para recuperar seu conteúdo atualizado.
 - O armazenamento local não é backup: sua limpeza pode apagar a única cópia de alterações ainda não compartilhadas. Uma evolução possível é adicionar persistência remota.
 - Abas no mesmo computador servem para demonstração inicial, mas compartilham infraestrutura e podem compartilhar armazenamento. A validação deve incluir dispositivos distintos.
 
-Uma alternativa seria manter a interface no GitHub Pages e usar um servidor WebSocket externo para sincronização. Isso também permite réplicas independentes para edição local, mas concentra o transporte no servidor. A proposta deste documento adota WebRTC para explorar a comunicação entre os participantes.
+Uma alternativa seria manter a interface no Azure Static Web Apps e usar um servidor WebSocket externo para sincronização. Isso também permite réplicas independentes para edição local, mas concentra o transporte no servidor. A proposta deste documento adota WebRTC para explorar a comunicação entre os participantes.
 
 ## 5. Análise de riscos de outras abordagens
 
@@ -115,17 +115,17 @@ O resultado esperado é a preservação das inserções concorrentes e a converg
 5. Abrir um navegador sem dados locais enquanto outra réplica está acessível e verificar a sincronização inicial.
 6. Testar a comunicação entre redes diferentes e registrar eventuais limitações de conectividade.
 
-Esses critérios são testes planejados, ainda não executados.
+O roteiro inclui a validação entre dispositivos e redes físicas diferentes, que ainda precisa ser executada. As verificações concluídas estão descritas no início deste README.
 
 ## 8. Acesso público e limites do protótipo
 
 O protótipo terá um único documento público, sem autenticação. Qualquer participante que acessar a sala poderá alterar ou apagar texto. CRDT não substitui autorização, moderação ou histórico de recuperação.
 
-O conteúdo será tratado como texto, sem executar HTML fornecido pelos participantes. O editor deverá apresentar um indicador de conexão, distinguindo edição local de comunicação ativa com outros nós.
+O conteúdo é representado por uma árvore CRDT formatada, com HTML de importação sanitizado e limitado ao esquema do editor. Scripts de arquivos importados não são executados. O editor apresenta um indicador de conexão, distinguindo edição local de comunicação ativa com outros nós.
 
 ## 9. Referências técnicas
 
-- [GitHub Pages: hospedagem estática](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+- [Azure Static Web Apps: planos e domínio personalizado](https://learn.microsoft.com/en-us/azure/static-web-apps/plans)
 - [Yjs: tipos compartilhados e provedores de sincronização](https://github.com/yjs/yjs)
 - [y-webrtc: transporte e sinalização](https://github.com/yjs/y-webrtc)
 - [Yjs: persistência local e edição offline](https://docs.yjs.dev/getting-started/allowing-offline-editing)
