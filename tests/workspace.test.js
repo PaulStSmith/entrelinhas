@@ -58,6 +58,21 @@ test('trash button cancels safely and removes the open document without autosave
     await workspace.save()
     assert.equal((await library.listDocuments()).length, 2)
     assert.equal((await library.listCheckpoints('doc-current')).length, 1)
+    let destination
+    globalThis.location = { href: page.window.location.href, assign: url => { destination = url } }
+    const newButton = page.window.document.getElementById('new-document')
+    assert.equal(newButton.title, 'New document')
+    assert.equal(newButton.getAttribute('aria-label'), 'New document')
+    newButton.click()
+    await until(() => destination !== undefined)
+    const newRoom = new URL(destination).searchParams.get('sala')
+    assert.notEqual(newRoom, 'doc-current')
+    const blank = await library.getDocument(newRoom)
+    assert.equal(blank.title, 'Untitled document')
+    assert.equal(blank.titleKey, 'untitled')
+    assert.equal(blank.seed, undefined)
+    assert.equal((await library.listDocuments()).length, 3)
+    assert.equal(page.window.document.getElementById('document-title').textContent, 'Notes <safe>.txt')
   } finally {
     workspace?.dispose()
     await library.close(); doc.destroy(); page.window.close()

@@ -84,6 +84,8 @@ Use **Abrir arquivo** para selecionar HTML ou texto UTF-8, com limite de 2 MB. O
 
 **HTML** preserva os títulos, as listas e as marcas suportadas pelo editor. Scripts, imagens externas, estilos arbitrários e outros elementos não suportados são removidos na importação. **TXT** não preserva formatação. DOCX, PDF e RTF não são formatos de importação deste aplicativo.
 
+**Novo documento**, ao lado de Salvar e Baixar, cria e abre imediatamente um documento em branco em **Meus documentos**, com um nome padrão no idioma selecionado, preservando o documento atual.
+
 **Salvar** adiciona ou restaura o documento atual em **Meus documentos** e guarda uma versão local, sem abrir um seletor de arquivos. **Baixar** exporta uma cópia HTML com formatação. No Edge e em navegadores com File System Access, **Salvar como** permite gravar uma cópia no computador. **Salvar como** sempre pede outro destino. Abrir um arquivo pelo seletor não concede gravação no original: selecione o mesmo destino em **Salvar como** se quiser atualizá-lo. O indicador mostra alterações posteriores ainda não gravadas no arquivo, incluindo edições remotas.
 
 Nos demais navegadores, **Salvar como** baixa uma nova cópia HTML. **Baixar HTML** sempre exporta uma cópia com formatação, sem vincular um arquivo; **Baixar cópia .txt** exporta somente o texto. Cancelar a escolha do destino não altera o vínculo anterior. Uma gravação só é confirmada depois de a escrita e o fechamento do arquivo terminarem.

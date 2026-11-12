@@ -131,6 +131,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     $('documents-dialog').showModal(); $('document-filter').focus()
   })
   $('document-filter').addEventListener('input', () => renderDocuments().catch(warning))
+  action('new-document', () => newDocument())
   action('new-document-form', () => newDocument($('new-document-title').value), 'submit')
   function openRename(targetRoom, name) {
     renameTarget = targetRoom
