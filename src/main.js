@@ -23,6 +23,7 @@ não precisam adotar a mesma licença.
 =============================================================================
 */
 
+import { initializeAnalytics } from './analytics.js'
 import * as Y from 'yjs'
 import { WebrtcProvider } from 'y-webrtc'
 import { IndexeddbPersistence } from 'y-indexeddb'
@@ -42,6 +43,7 @@ import './style.css'
 import './workspace.css'
 
 const $ = id => document.getElementById(id)
+initializeAnalytics()
 initializeI18n()
 initializeUI()
 const signaling = import.meta.env.VITE_SIGNALING_URL || 'wss://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net'

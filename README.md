@@ -101,7 +101,7 @@ npm test
 npm run build
 ```
 
-Os 27 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
+Os 29 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
 
 ## Publicação
 
@@ -156,3 +156,12 @@ O [documento Word](Documentacao_Editor_Colaborativo_CRDT.docx) reúne a arquitet
 ## Licença
 
 Copyright (c) 2026 Paulo Santos. Código disponibilizado sob a licença MIT; consulte [LICENSE](LICENSE).
+
+
+## Google Analytics
+
+A propriedade GA4 **Entrelinhas — editor.byteforge.biz** (`564030584`) usa o stream **Entrelinhas Web** (`16330016052`), com ID de medição `G-K9Q5RVRJ7L` e fuso de relatórios São Paulo. A propriedade fica na conta Analytics existente `paulstsmith_blog`.
+
+O módulo `src/analytics.js` carrega o Google tag somente em `https://editor.byteforge.biz`. Localhost, previews e o hostname alternativo Azure não enviam métricas. O título enviado é sempre `Entrelinhas`, a URL é a raiz sem sala, query ou fragmento, e referências externas mantêm apenas a origem. Nomes, texto dos documentos, buscas e nomes de participantes não são enviados pela aplicação. Medição otimizada, Google signals e personalização de anúncios estão desativados. O Google tag usa cookies Analytics no domínio do editor para métricas de visitas e sessões; os relatórios não representam todos os visitantes quando o navegador bloqueia Analytics.
+
+[Relatórios da propriedade](https://analytics.google.com/analytics/web/#/a250151835p564030584/reports/intelligenthome). A configuração segue os parâmetros de [visualizações de página do GA4](https://developers.google.com/analytics/devguides/collection/ga4/views). Dados nos relatórios padrão podem demorar a aparecer.

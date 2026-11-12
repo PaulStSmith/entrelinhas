@@ -153,3 +153,8 @@ O conteúdo é representado por uma árvore CRDT formatada, com HTML de importa�
 - [Yjs: tipos compartilhados e provedores de sincronização](https://github.com/yjs/yjs)
 - [y-webrtc: transporte e sinalização](https://github.com/yjs/y-webrtc)
 - [Yjs: persistência local e edição offline](https://docs.yjs.dev/getting-started/allowing-offline-editing)
+
+
+## Métricas de uso
+
+O frontend de produção carrega Google Analytics 4 (`G-K9Q5RVRJ7L`) de forma assíncrona, sem depender dele para abrir ou editar documentos. O módulo `src/analytics.js` limita a origem canônica e define metadados fixos para que nomes de documentos e identificadores de salas não apareçam nas visualizações. Referências externas são reduzidas à origem. Medição otimizada permanece desativada no stream, e o código desativa Google signals e personalização de anúncios. Cookies de métricas ficam restritos ao domínio `editor.byteforge.biz`. Não há envio de conteúdo CRDT ou eventos de campos de edição. Os testes conferem esses limites e a ausência de carga em previews.
