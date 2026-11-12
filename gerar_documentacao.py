@@ -49,7 +49,7 @@ def arrow(a,b,color='#555555'):
     angle=math.atan2(b[1]-a[1],b[0]-a[0])
     pts=[b,(b[0]-17*math.cos(angle-.45),b[1]-17*math.sin(angle-.45)),(b[0]-17*math.cos(angle+.45),b[1]-17*math.sin(angle+.45))]
     draw.polygon(pts, fill=color)
-box((555,20,1045,135),'GitHub Pages\nHTML CSS e JavaScript')
+box((555,20,1045,135),'Azure Static Web Apps\nHTML CSS e JavaScript')
 box((90,260,620,415),'Navegador A\nCRDT e armazenamento local')
 box((980,260,1510,415),'Navegador B\nCRDT e armazenamento local')
 box((555,560,1045,695),'Sinalização externa\nEstabelecimento de conexões')
@@ -84,13 +84,13 @@ for name in ['List Bullet','List Number']:
     doc.styles[name].font.name='Arial';doc.styles[name].font.size=Pt(10.5)
     doc.styles[name].paragraph_format.space_after=Pt(5)
 doc.core_properties.title='Editor colaborativo distribuído com CRDT'
-doc.core_properties.subject='Arquitetura proposta para edição colaborativa em JavaScript com hospedagem no GitHub Pages'
+doc.core_properties.subject='Arquitetura proposta para edição colaborativa em JavaScript com hospedagem no Azure Static Web Apps'
 doc.core_properties.author='Paulo Santos'
-doc.core_properties.keywords='CRDT, Yjs, WebRTC, GitHub Pages, sistemas distribuídos'
+doc.core_properties.keywords='CRDT, Yjs, WebRTC, Azure Static Web Apps, sistemas distribuídos'
 doc.add_paragraph('Editor colaborativo distribuído com CRDT','Title')
-doc.add_paragraph('Proposta de sistema distribuído em JavaScript com hospedagem no GitHub Pages','Subtitle')
+doc.add_paragraph('Proposta de sistema distribuído em JavaScript com hospedagem no Azure Static Web Apps','Subtitle')
 doc.add_paragraph('Arquitetura Reativa  |  11 de novembro de 2026')
-doc.add_paragraph('Propomos um editor público em que os participantes alteram o mesmo documento a partir de navegadores independentes. A escolha de CRDT permite edição local durante desconexões e convergência após a sincronização. O GitHub Pages hospedará a interface; a comunicação entre participantes utilizará WebRTC com sinalização externa.')
+doc.add_paragraph('Propomos um editor público em que os participantes alteram o mesmo documento a partir de navegadores independentes. A escolha de CRDT permite edição local durante desconexões e convergência após a sincronização. O Azure Static Web Apps hospedará a interface; a comunicação entre participantes utilizará WebRTC com sinalização externa.')
 
 def add_text(p,text):
     # Mantém links utilizáveis no Word e formatação de ênfase do texto de origem.

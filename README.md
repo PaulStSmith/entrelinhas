@@ -75,10 +75,10 @@ O servidor continua no Azure App Service Linux **Free F1**, recurso `editor-crdt
 
 O workflow `.github/workflows/azure-server.yml` testa e publica a sinalização quando mudam o servidor, as dependências ou seu empacotador. `npm run package:server` gera somente `server/index.js`, `ws` e um manifesto mínimo em `.azure-deploy/staging`. A interface, os documentos acadêmicos e as credenciais não entram nesse pacote. Após publicar, o workflow confere `/health`. Os dois workflows também aceitam execução manual em Actions.
 
-Secrets do repositório, configurados em GitHub Actions:
+Autenticação de publicação, configurada em GitHub Actions:
 
 - `AZURE_STATIC_WEB_APPS_API_TOKEN`: token de implantação do recurso `entrelinhas-ui`.
-- `AZURE_WEBAPP_PUBLISH_PROFILE`: perfil de publicação de `editor-crdt-byteforge`.
+- Variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` e `AZURE_SUBSCRIPTION_ID`: identificadores da identidade gerenciada `entrelinhas-github`. O backend usa OIDC, sem senha armazenada. A federação aceita somente `repo:PaulStSmith/entrelinhas:ref:refs/heads/main`, com papel Website Contributor limitado ao recurso `editor-crdt-byteforge`. A autenticação básica de publicação permanece desativada.
 
 Para publicar manualmente a sinalização, depois de `npm ci` e `az login`, execute:
 
