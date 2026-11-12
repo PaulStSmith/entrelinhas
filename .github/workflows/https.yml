@@ -1,0 +1,40 @@
+name: Finalizar HTTPS do domínio
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+concurrency:
+  group: custom-domain-https
+  cancel-in-progress: false
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Aguardar certificado e exigir HTTPS
+        shell: bash
+        run: |
+          for attempt in $(seq 1 60); do
+            domain=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.cname')
+            if [ "$domain" != "editor.byteforge.biz" ]; then
+              echo 'O domínio foi alterado. Nenhuma configuração será modificada.'
+              exit 1
+            fi
+            if result=$(gh api "repos/$GITHUB_REPOSITORY/pages" -X PUT -F https_enforced=true 2>&1); then
+              curl --fail --silent --show-error --retry 3 https://editor.byteforge.biz/ -o /tmp/editor.html
+              grep -q 'Nosso caderno compartilhado' /tmp/editor.html
+              echo 'HTTPS habilitado e editor verificado em https://editor.byteforge.biz/'
+              exit 0
+            fi
+            if echo "$result" | grep -Eq 'HTTP (401|403|404)'; then
+              echo "$result"
+              exit 1
+            fi
+            echo "Certificado ainda indisponível. Tentativa $attempt de 60."
+            sleep 60
+          done
+          echo 'O GitHub ainda não liberou HTTPS após uma hora. Consulte a validação DNS em Settings > Pages e execute novamente este workflow.'
+          exit 1
