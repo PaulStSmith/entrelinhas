@@ -5,12 +5,14 @@ import { documentTitle, documentURL, PUBLIC_ROOM, displayDocumentTitle } from '.
 import { t, getLocale, formatDate, localizeMessage, onLanguageChange } from './i18n.js'
 
 export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady, initialRecord }) {
+  const document = globalThis.document
+  const window = document.defaultView
   const $ = id => document.getElementById(id)
   const date = formatDate
   let titleRecord = initialRecord || { room, titleKey: room === PUBLIC_ROOM ? 'publicTitle' : 'roomTitle' }
   let title = displayDocumentTitle(titleRecord)
   let ready = false, timer, revision = 0, dirty = false, selectedCheckpoint, queue = Promise.resolve()
-  let lastCheckpoint, historyWarning = false, removed = false
+  let lastCheckpoint, historyWarning = false, removed = false, renameTarget = room
   function updateTitle(value) {
     title = documentTitle(value)
     $('document-title').textContent = title
@@ -84,6 +86,12 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
       const detail = document.createElement('span')
       detail.textContent = `${record.room === room ? `${t('openNow')} · ` : ''}${date(record.updatedAt)} · ${record.room}`
       const heading = document.createElement('div'); heading.className = 'document-row-heading'
+      const rename = document.createElement('button'); rename.type = 'button'; rename.className = 'rename-document'
+      rename.dataset.room = record.room
+      rename.setAttribute('aria-label', t('renameDocument', { title: displayDocumentTitle(record) }))
+      rename.title = rename.getAttribute('aria-label')
+      rename.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg>'
+      rename.addEventListener('click', () => openRename(record.room, displayDocumentTitle(record)))
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'remove-document'
       remove.setAttribute('aria-label', t('removeDocument', { title: displayDocumentTitle(record) }))
       remove.title = remove.getAttribute('aria-label')
@@ -103,7 +111,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
           toast(t('documentRemoved'))
         } catch (error) { removed = wasRemoved; remove.disabled = false; toast(t('removeDocumentError')) }
       })
-      heading.append(link, remove); row.append(heading, detail); list.append(row)
+      heading.append(link, rename, remove); row.append(heading, detail); list.append(row)
     }
     $('document-empty').hidden = !!list.children.length
   }
@@ -114,12 +122,24 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   })
   $('document-filter').addEventListener('input', () => renderDocuments().catch(warning))
   action('new-document-form', () => newDocument($('new-document-title').value), 'submit')
-  action('rename-document', () => {
-    $('rename-title').value = title; $('rename-dialog').showModal(); $('rename-title').focus()
-  })
+  function openRename(targetRoom, name) {
+    renameTarget = targetRoom
+    $('rename-title').value = name; $('rename-dialog').showModal()
+    $('rename-title').focus(); $('rename-title').select()
+  }
+  action('rename-document', () => openRename(room, title))
   action('rename-form', async () => {
-    const record = await library.touchDocument(room, $('rename-title').value)
-    removed = false; titleRecord = record; updateTitle(displayDocumentTitle(record)); $('rename-dialog').close()
+    const record = await library.touchDocument(renameTarget, $('rename-title').value)
+    if (record.room === room) {
+      removed = false; titleRecord = record; updateTitle(displayDocumentTitle(record))
+    }
+    if ($('documents-dialog').open) await renderDocuments()
+    $('rename-dialog').close()
+    if ($('documents-dialog').open) {
+      const button = [...$('document-list').querySelectorAll('.rename-document')].find(item => item.dataset.room === record.room)
+      const focusTarget = button || $('document-filter')
+      focusTarget.focus()
+    }
     toast(t('renamed'))
   }, 'submit')
   action('duplicate-document', () => newDocument(t('copyTitle', { title }), Y.encodeStateAsUpdate(doc)))
@@ -174,12 +194,13 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && dirty && ready) capture('Ao sair da aba').catch(warning)
   })
-  onLanguageChange(() => {
+  const stopLanguageUpdates = onLanguageChange(() => {
     updateTitle(displayDocumentTitle(titleRecord)); updateCheckpointStatus()
     if ($('documents-dialog').open) renderDocuments().catch(warning)
     if ($('history-dialog').open) renderHistory(selectedCheckpoint?.id).catch(warning)
   })
   return {
+    dispose() { clearTimeout(timer); stopLanguageUpdates() },
     changed,
     capture,
     async openFile(imported) {

@@ -60,6 +60,8 @@ As traduções ficam em `src/messages.js`; a seleção e a aplicação da interf
 
 Abra **Meus documentos** para criar uma sala com um nome, filtrar a lista e reabrir documentos. **Renomear** altera o nome somente neste navegador; o link da sala continua igual. **Duplicar** cria outra sala com o conteúdo e a formatação atuais. Réplicas de salas anteriores também aparecem quando o navegador oferece enumeração de bancos IndexedDB; nos demais, basta abrir o link de uma sala para cadastrá-la na biblioteca.
 
+Use o lápis à direita do nome para renomear qualquer documento diretamente em **Meus documentos**, sem abri-lo. O nome muda somente neste navegador; o link e o conteúdo são preservados. O lápis e a lixeira têm tooltips no idioma selecionado.
+
 Use a lixeira à direita do nome para remover uma entrada de **Meus documentos** e seu histórico local, após confirmação. Isso não altera o arquivo original nem as cópias dos participantes. A réplica local é preservada; abrir o link novamente adiciona o documento à lista. Abrir novamente um arquivo removido cria uma nova entrada.
 
 A biblioteca e os nomes ficam nesta origem e neste navegador. Uma nova sala recebe um identificador aleatório, mas não possui senha ou controle de acesso. O destinatário de um link precisa alcançar uma réplica conectada para receber o conteúdo. Não há uma lista central de documentos.
@@ -95,7 +97,7 @@ npm test
 npm run build
 ```
 
-Os 26 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
+Os 27 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico, recuperação de cópias e internacionalização. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. O seletor de idiomas foi conferido nos quatro idiomas, incluindo persistência após recarregar, histórico localizado e menu em tela de 320 px. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
 
 ## Publicação
 

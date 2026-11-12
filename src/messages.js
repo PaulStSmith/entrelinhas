@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT — Copyright (c) 2026 Paulo Santos
 // key, Portuguese source, English, Spanish, French. Every interface string has all four translations.
 export const messageRows = [
+  ['renameDocument','Renomear “{title}”','Rename “{title}”','Renombrar “{title}”','Renommer « {title} »'],
   ['removeDocument','Remover “{title}” dos meus documentos','Remove “{title}” from My documents','Eliminar “{title}” de Mis documentos','Retirer « {title} » de Mes documents'],
   ['removeDocumentConfirm','Remover “{title}” e seu histórico local de Meus documentos? O arquivo original e as cópias de outros participantes não serão apagados. Abrir o link novamente adiciona o documento à lista.','Remove “{title}” and its local history from My documents? The original file and other participants’ copies will stay intact. Opening its link again adds the document back to the list.','¿Eliminar “{title}” y su historial local de Mis documentos? El archivo original y las copias de otros participantes se conservarán. Abrir su enlace de nuevo volverá a añadir el documento a la lista.','Retirer « {title} » et son historique local de Mes documents ? Le fichier original et les copies des autres participants seront conservés. Ouvrir à nouveau son lien ajoutera le document à la liste.'],
   ['documentRemoved','Removido de Meus documentos','Removed from My documents','Eliminado de Mis documentos','Retiré de Mes documents'],

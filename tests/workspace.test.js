@@ -22,6 +22,7 @@ test('trash button cancels safely and removes the open document without autosave
   const previous = { window: globalThis.window, document: globalThis.document, location: globalThis.location }
   globalThis.window = page.window; globalThis.document = page.window.document; globalThis.location = page.window.location
   const library = createLibrary(new IDBFactory()), doc = new Y.Doc()
+  let workspace
   try {
     initializeI18n({ document: page.window.document, navigator: { languages: ['en'] } })
     const initialRecord = await library.createDocument({ room: 'doc-current', title: 'Notes <safe>.txt' })
@@ -30,7 +31,7 @@ test('trash button cancels safely and removes the open document without autosave
     dialog.showModal = () => { dialog.open = true }
     let confirmation, toast
     page.window.confirm = message => { confirmation = message; return false }
-    const workspace = createWorkspace({ editor: { getHTML: () => '<p>Important</p>', getText: () => 'Important' }, doc, library, room: 'doc-current', cleanHTML: html => html, toast: message => { toast = message }, isReady: () => true, initialRecord })
+    workspace = createWorkspace({ editor: { getHTML: () => '<p>Important</p>', getText: () => 'Important' }, doc, library, room: 'doc-current', cleanHTML: html => html, toast: message => { toast = message }, isReady: () => true, initialRecord })
     await workspace.start()
     page.window.document.getElementById('documents').click()
     await until(() => dialog.open || toast)
@@ -52,6 +53,66 @@ test('trash button cancels safely and removes the open document without autosave
     assert.equal(page.window.document.getElementById('document-title').textContent, 'Notes <safe>.txt')
     assert.equal(page.window.document.activeElement.id, 'document-filter')
   } finally {
+    workspace?.dispose()
+    await library.close(); doc.destroy(); page.window.close()
+    globalThis.window = previous.window; globalThis.document = previous.document; globalThis.location = previous.location
+  }
+})
+
+test('library pencil renames selected documents, preserves the active document, and localizes both tooltips', async () => {
+  const page = new JSDOM(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), { url: 'https://editor.byteforge.biz/' })
+  const previous = { window: globalThis.window, document: globalThis.document, location: globalThis.location }
+  globalThis.window = page.window; globalThis.document = page.window.document; globalThis.location = page.window.location
+  const library = createLibrary(new IDBFactory()), doc = new Y.Doc()
+  let workspace
+  try {
+    const i18n = initializeI18n({ document: page.window.document, navigator: { languages: ['en'] } })
+    const initialRecord = await library.createDocument({ room: 'doc-current', title: 'Current' })
+    const imported = await library.openImportedDocument({ sourceKey: 'b'.repeat(64), name: 'Other.txt', seed: new Uint8Array([1]) })
+    const $ = id => page.window.document.getElementById(id)
+    for (const id of ['documents-dialog', 'rename-dialog']) {
+      $(id).showModal = () => { $(id).open = true }
+      $(id).close = () => { $(id).open = false }
+    }
+    let toast
+    workspace = createWorkspace({ editor: { getHTML: () => '<p>Important</p>', getText: () => 'Important' }, doc, library, room: 'doc-current', cleanHTML: html => html, toast: message => { toast = message }, isReady: () => true, initialRecord })
+    await workspace.start(); $('documents').click()
+    await until(() => $('documents-dialog').open)
+    const pencil = target => [...$('document-list').querySelectorAll('.rename-document')].find(button => button.dataset.room === target)
+    const otherPencil = pencil(imported.room)
+    assert.equal(otherPencil.title, 'Rename “Other.txt”')
+    assert.equal(otherPencil.getAttribute('aria-label'), otherPencil.title)
+    assert.ok(otherPencil.querySelector('use[href="#i-pencil"]'))
+    const trash = otherPencil.nextElementSibling
+    assert.equal(trash.title, 'Remove “Other.txt” from My documents')
+    assert.equal(trash.getAttribute('aria-label'), trash.title)
+    otherPencil.click()
+    assert.equal($('rename-title').value, 'Other.txt')
+    $('rename-title').value = 'Cancelled change'
+    $('rename-dialog').querySelector('[data-close]').click()
+    assert.equal((await library.getDocument(imported.room)).title, 'Other.txt')
+    otherPencil.click(); $('rename-title').value = 'Renamed <notes>'
+    $('rename-form').dispatchEvent(new page.window.Event('submit', { cancelable: true }))
+    await until(() => toast?.startsWith('Name updated') && !$('rename-form').disabled)
+    assert.equal((await library.getDocument(imported.room)).title, 'Renamed <notes>')
+    assert.equal((await library.getDocument(imported.room)).sourceKey, 'b'.repeat(64))
+    assert.equal($('document-title').textContent, 'Current')
+    assert.equal(page.window.document.activeElement, pencil(imported.room))
+    assert.equal(pencil(imported.room).previousElementSibling.textContent, 'Renamed <notes>')
+    toast = undefined
+    pencil('doc-current').click(); $('rename-title').value = 'New current name'
+    $('rename-form').dispatchEvent(new page.window.Event('submit', { cancelable: true }))
+    await until(() => toast?.startsWith('Name updated') && !$('rename-form').disabled)
+    assert.equal($('document-title').textContent, 'New current name')
+    assert.equal(page.window.document.title, 'New current name — Entrelinhas')
+    i18n.select('fr')
+    await until(() => pencil(imported.room)?.title === 'Renommer « Renamed <notes> »')
+    assert.equal(pencil(imported.room).nextElementSibling.title, 'Retirer « Renamed <notes> » de Mes documents')
+    await library.close()
+    assert.equal((await library.getDocument(imported.room)).title, 'Renamed <notes>')
+    assert.equal((await library.listCheckpoints('doc-current')).length, 1)
+  } finally {
+    workspace?.dispose()
     await library.close(); doc.destroy(); page.window.close()
     globalThis.window = previous.window; globalThis.document = previous.document; globalThis.location = previous.location
   }
