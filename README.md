@@ -1,6 +1,6 @@
 # Entrelinhas
 
-Editor colaborativo distribuído com Yjs e WebRTC. Cada navegador mantém uma réplica CRDT e persiste seu estado no IndexedDB. O servidor Azure encaminha somente mensagens de sinalização para estabelecer as conexões entre participantes.
+Editor WYSIWYG colaborativo distribuído com Tiptap, Yjs e WebRTC. Cada navegador mantém uma réplica CRDT formatada e persiste seu estado no IndexedDB. O servidor Azure encaminha somente mensagens de sinalização para estabelecer as conexões entre participantes.
 
 ## Acessar o editor
 
@@ -24,6 +24,9 @@ Para rodar também a sinalização local, execute `npm start` em outro terminal.
 
 ## Funcionalidades
 
+- Editor WYSIWYG com títulos, negrito, itálico, sublinhado, tachado, listas, citações e blocos de código.
+- Abrir arquivos HTML e TXT locais, salvar, salvar como e baixar cópias HTML ou TXT.
+- Desfazer e refazer locais, busca e substituição, inclusive em texto com marcas diferentes.
 - Edição simultânea com cursores e nomes de participantes.
 - Réplica local persistida no IndexedDB, sem documento central autoritativo.
 - Simulação de desconexão e combinação das alterações ao reconectar.
@@ -33,6 +36,20 @@ Para rodar também a sinalização local, execute `npm start` em outro terminal.
 
 O indicador de conexão distingue participantes WebRTC, outras abas locais e edição sem pares conectados. A resposta de `/health` indica apenas disponibilidade HTTP da sinalização, não garante conectividade WebRTC em qualquer rede.
 
+## Abrir e salvar arquivos locais
+
+Use **Abrir arquivo** para selecionar HTML ou texto UTF-8, com limite de 2 MB. O editor pede confirmação antes de substituir o caderno compartilhado. O arquivo original não é alterado ao abrir. Conteúdo importado será compartilhado com os participantes da sala; para trabalhar sozinho, simule a desconexão antes de abrir.
+
+**HTML** preserva os títulos, as listas e as marcas suportadas pelo editor. Scripts, imagens externas, estilos arbitrários e outros elementos não suportados são removidos na importação. **TXT** não preserva formatação. DOCX, PDF e RTF não são formatos de importação deste aplicativo.
+
+No Edge e em navegadores com File System Access, **Salvar** solicita o destino na primeira gravação e reutiliza o arquivo escolhido nas seguintes. **Salvar como** sempre pede outro destino. Abrir um arquivo pelo seletor não concede gravação no original: selecione o mesmo destino ao salvar se quiser atualizá-lo. O indicador mostra alterações posteriores ainda não gravadas no arquivo, incluindo edições remotas.
+
+Nos demais navegadores, salvar baixa uma nova cópia HTML. **Baixar HTML** sempre exporta uma cópia com formatação, sem vincular um arquivo; **Baixar cópia .txt** exporta somente o texto. Cancelar a escolha do destino não altera o vínculo anterior. Uma gravação só é confirmada depois de a escrita e o fechamento do arquivo terminarem.
+
+Atalhos: `Ctrl+O` abre, `Ctrl+S` salva, `Ctrl+Shift+S` salva como, `Ctrl+F` busca, `Ctrl+B` aplica negrito, `Ctrl+I` aplica itálico, `Ctrl+U` sublinha, `Ctrl+Z` desfaz e `Ctrl+Shift+Z` refaz. No macOS, use Command no lugar de Ctrl.
+
+A versão WYSIWYG utiliza salas e armazenamento `entrelinhas-rich-v2-*`, separados da demonstração inicial de texto simples. Não há migração automática do documento anterior; seu estado antigo permanece no IndexedDB de origem e a proposta DOCX continua como registro da arquitetura inicial.
+
 ## Validação
 
 ```powershell
@@ -40,7 +57,7 @@ npm test
 npm run build
 ```
 
-Os testes verificam convergência com inserções e exclusões concorrentes, entrega duplicada e fora de ordem, encaminhamento da sinalização e isolamento de mensagens JSON inválidas. A conferência no navegador utiliza duas origens diferentes (`localhost` e `127.0.0.1`) para evitar que BroadcastChannel esconda uma falha de WebRTC. Também foram verificadas edições independentes durante desconexão e a combinação após reconexão.
+Os testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca entre marcas e sanitização de HTML. A conferência no navegador utiliza duas origens diferentes (`localhost` e `127.0.0.1`) para evitar que BroadcastChannel esconda uma falha de WebRTC. Inclui formatação compartilhada, busca e substituição. A abertura e a gravação pelo diálogo nativo do sistema ainda precisam de conferência manual: a extensão bloqueou o seletor automatizado e a autorização para o controle nativo expirou.
 
 ## Publicação
 
@@ -139,7 +156,7 @@ O CRDT define como combinar as alterações; o WebRTC define como transportá-la
 ### Limites da solução
 
 - O GitHub Pages sozinho não fornece a infraestrutura de comunicação necessária para entrada automática de participantes.
-- A sinalização deverá ser disponibilizada fora do GitHub Pages. Nenhum serviço específico foi provisionado ou validado nesta etapa.
+- A sinalização é disponibilizada no Azure App Service F1, fora do GitHub Pages. O servidor foi publicado e a conexão WebRTC foi verificada no navegador.
 - Redes restritivas podem exigir infraestrutura de travessia de rede, incluindo TURN. A conectividade deverá ser testada entre redes diferentes.
 - Se a sinalização ficar indisponível, novas conexões podem falhar. Conexões já estabelecidas podem continuar funcionando enquanto seu caminho de rede permanecer disponível.
 - A proposta inicial não possui uma cópia central durável. Um participante novo precisa alcançar uma réplica que contenha o documento para recuperar seu conteúdo atualizado.
@@ -184,13 +201,13 @@ O resultado esperado é a preservação das inserções concorrentes e a converg
 5. Abrir um navegador sem dados locais enquanto outra réplica está acessível e verificar a sincronização inicial.
 6. Testar a comunicação entre redes diferentes e registrar eventuais limitações de conectividade.
 
-Esses critérios são testes planejados, ainda não executados.
+O roteiro inclui a validação entre dispositivos e redes físicas diferentes, que ainda precisa ser executada. As verificações concluídas estão descritas no início deste README.
 
 ## 8. Acesso público e limites do protótipo
 
 O protótipo terá um único documento público, sem autenticação. Qualquer participante que acessar a sala poderá alterar ou apagar texto. CRDT não substitui autorização, moderação ou histórico de recuperação.
 
-O conteúdo será tratado como texto, sem executar HTML fornecido pelos participantes. O editor deverá apresentar um indicador de conexão, distinguindo edição local de comunicação ativa com outros nós.
+O conteúdo é representado por uma árvore CRDT formatada, com HTML de importação sanitizado e limitado ao esquema do editor. Scripts de arquivos importados não são executados. O editor apresenta um indicador de conexão, distinguindo edição local de comunicação ativa com outros nós.
 
 ## 9. Referências técnicas
 
