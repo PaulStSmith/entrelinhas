@@ -25,6 +25,9 @@ Para rodar também a sinalização local, execute `npm start` em outro terminal.
 
 ## Funcionalidades
 
+- Biblioteca local para criar, nomear, duplicar, filtrar e reabrir documentos.
+- Histórico com versões automáticas e manuais, prévia e recuperação em um documento separado.
+- Prévia de impressão e exportação PDF pela janela de impressão do navegador.
 - Editor WYSIWYG com títulos, negrito, itálico, sublinhado, tachado, listas, citações e blocos de código.
 - Abrir arquivos HTML e TXT locais, salvar, salvar como e baixar cópias HTML ou TXT.
 - Desfazer e refazer locais, busca e substituição, inclusive em texto com marcas diferentes.
@@ -36,6 +39,22 @@ Para rodar também a sinalização local, execute `npm start` em outro terminal.
 - Layout adaptável a celulares e navegação por teclado.
 
 O indicador de conexão distingue participantes WebRTC, outras abas locais e edição sem pares conectados. A resposta de `/health` indica apenas disponibilidade HTTP da sinalização, não garante conectividade WebRTC em qualquer rede.
+
+## Documentos e histórico local
+
+Abra **Meus documentos** para criar uma sala com um nome, filtrar a lista e reabrir documentos. **Renomear** altera o nome somente neste navegador; o link da sala continua igual. **Duplicar** cria outra sala com o conteúdo e a formatação atuais. Réplicas de salas anteriores também aparecem quando o navegador oferece enumeração de bancos IndexedDB; nos demais, basta abrir o link de uma sala para cadastrá-la na biblioteca.
+
+A biblioteca e os nomes ficam nesta origem e neste navegador. Uma nova sala recebe um identificador aleatório, mas não possui senha ou controle de acesso. O destinatário de um link precisa alcançar uma réplica conectada para receber o conteúdo. Não há uma lista central de documentos.
+
+O **Histórico** guarda mudanças a cada 30 segundos durante a edição, além de versões ao abrir, antes de trocar de documento e antes de importar um arquivo. **Guardar versão** permite salvar um ponto manual. Conteúdo idêntico à última versão não gera outra entrada. São mantidas até 20 versões por documento, com limite total de 20 MB; versões antigas são removidas conforme esses limites. O indicador mostra quando a última versão foi guardada ou informa uma falha de armazenamento.
+
+Selecione uma versão para conferir seu conteúdo e use **Restaurar como novo documento**. A recuperação abre outra sala e preserva o documento compartilhado atual. Antes da importação, se não for possível guardar a versão anterior, o conteúdo não será substituído. Baixe uma cópia HTML antes de tentar novamente.
+
+Histórico local não é backup externo: limpar os dados do navegador remove biblioteca, versões e réplicas. Edições feitas nos segundos finais antes de encerrar abruptamente a aba podem não ter um checkpoint, embora a persistência normal da réplica continue funcionando.
+
+## Imprimir e salvar PDF
+
+Use **Imprimir / PDF** para conferir uma prévia limpa com o nome do documento e a formatação atual. **Imprimir / salvar PDF** abre a janela do navegador, onde você pode escolher **Salvar como PDF** ou uma impressora. O layout usa papel A4 e margens de 18 mm como padrão, sem ferramentas, participantes ou cursores. A paginação final e os ajustes de papel, margens e cabeçalhos são controlados pelo navegador. A impressão pelo menu do navegador também prepara o documento atual.
 
 ## Abrir e salvar arquivos locais
 
@@ -58,7 +77,7 @@ npm test
 npm run build
 ```
 
-Os oito testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca entre marcas e sanitização de HTML. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura e gravação ainda precisam de conferência manual.
+Os 14 testes verificam convergência com inserções e exclusões concorrentes, formatação em XML CRDT, entrega duplicada e fora de ordem, sinalização, JSON inválido, UTF-8, limites de arquivo, falha de escrita, busca, sanitização, biblioteca local, retenção e atomicidade do histórico e recuperação de cópias. Na publicação Azure, duas origens distintas (domínio público e hostname Azure) estabeleceram WebRTC, sincronizaram o documento e combinaram edições offline após reconectar. A recuperação da réplica após recarregar também foi conferida. Na biblioteca, criação, renomeação, duplicação, recuperação sem alterar a origem e prévia de impressão foram conferidas no navegador. Testes entre dispositivos em redes físicas diferentes e os diálogos nativos de abertura, gravação e salvamento PDF ainda precisam de conferência manual.
 
 ## Publicação
 

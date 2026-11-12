@@ -67,6 +67,18 @@ Os participantes de cada documento usam o mesmo identificador de sala, seleciona
 
 O CRDT define como combinar as alterações; o WebRTC define como transportá-las. O serviço de sinalização ajuda a iniciar as conexões e não determina qual edição vence.
 
+### Biblioteca e recuperação local
+
+O banco IndexedDB `entrelinhas-library-v1` mantém os nomes dos documentos, a lista de salas e os checkpoints locais. As réplicas compartilhadas continuam nos bancos `entrelinhas-rich-v2-*`, preservando compatibilidade com os links e documentos existentes. Os nomes são locais e não fazem parte do documento compartilhado.
+
+Cada checkpoint guarda uma atualização Yjs completa e uma representação sanitizada para prévia. A gravação e a remoção de versões antigas acontecem na mesma transação. São mantidas até 20 versões e até 20 MB por documento. Versões são capturadas após 30 segundos de mudanças, manualmente e antes de operações como trocar de documento ou importar.
+
+Duplicar ou recuperar cria uma nova sala com uma atualização inicial imutável. A aplicação dessa atualização é idempotente; reabrir a cópia não reinsere texto removido depois. A recuperação nunca substitui o conteúdo da sala original. Não há servidor de histórico: limpar os dados locais pode apagar todas as versões daquele navegador.
+
+### Impressão
+
+A prévia e a impressão são geradas do HTML sanitizado do editor. A folha de estilos de impressão apresenta o título e o conteúdo, com papel A4 e margens de 18 mm, ocultando ferramentas e cursores. O navegador controla a impressão e o destino PDF; nenhum serviço remoto recebe o documento para conversão.
+
 ### Limites da solução
 
 - A hospedagem estática sozinha não fornece a sinalização necessária para entrada automática de participantes.

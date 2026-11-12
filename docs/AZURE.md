@@ -78,6 +78,8 @@ O recurso recriado recebe outro hostname e token. Atualize o secret no GitHub, p
 
 Reverter código ou recriar hospedagem não restaura documentos dos participantes: não há cópia central. Os dados continuam nas réplicas dos navegadores; baixe cópias dos documentos importantes.
 
+A biblioteca de documentos e o histórico usam IndexedDB na mesma origem pública. Eles não criam recursos Azure nem uma cópia de segurança remota. Recuperar um checkpoint cria outra sala e preserva a original. A impressão e o destino PDF são processados no navegador. Nenhuma dessas funcionalidades altera os planos de hospedagem.
+
 ## Custos e limitações
 
 A interface usa Static Web Apps Free, com domínio personalizado e HTTPS. A sinalização usa o App Service F1 existente, sem domínio personalizado nesse serviço. Não é necessário habilitar Standard, Dedicated, Front Door ou outro serviço pago para esta configuração. Quotas dos planos gratuitos continuam aplicáveis.
