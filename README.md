@@ -40,6 +40,14 @@ Para rodar também a sinalização local, execute `npm start` em outro terminal.
 
 O indicador de conexão distingue participantes WebRTC, outras abas locais e edição sem pares conectados. A resposta de `/health` indica apenas disponibilidade HTTP da sinalização, não garante conectividade WebRTC em qualquer rede.
 
+## Interface de escrita
+
+O editor abre diretamente no documento. O menu **Arquivo** reúne abertura, salvar como, downloads e impressão; **Salvar** permanece visível. O menu **Documento** reúne renomeação, duplicação e criação de versões manuais. **Histórico**, **Meus documentos** e **Copiar link** ficam acessíveis no cabeçalho. Nome de participante e simulação de desconexão ficam em **Colaboração**.
+
+A barra de formatação acompanha a rolagem. Em telas pequenas, ela desliza horizontalmente para manter espaço para o texto. Menus fecham ao escolher uma ação, clicar fora ou pressionar Escape. Nomes de arquivo longos são abreviados no cabeçalho; o texto completo aparece ao passar o ponteiro.
+
+O botão de tema no topo alterna entre claro e escuro. A preferência fica neste navegador; antes de escolher, o editor acompanha o tema do sistema. A impressão continua usando uma folha branca, independentemente do tema de edição.
+
 ## Documentos e histórico local
 
 Abra **Meus documentos** para criar uma sala com um nome, filtrar a lista e reabrir documentos. **Renomear** altera o nome somente neste navegador; o link da sala continua igual. **Duplicar** cria outra sala com o conteúdo e a formatação atuais. Réplicas de salas anteriores também aparecem quando o navegador oferece enumeração de bancos IndexedDB; nos demais, basta abrir o link de uma sala para cadastrá-la na biblioteca.

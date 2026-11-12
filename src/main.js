@@ -35,10 +35,12 @@ import { decodeTextFile, downloadText, writeTextFile, textFileTypes, MAX_FILE_BY
 import { findMatches } from './search.js'
 import { createLibrary } from './library.js'
 import { createWorkspace } from './workspace.js'
+import { initializeUI } from './ui.js'
 import './style.css'
 import './workspace.css'
 
 const $ = id => document.getElementById(id)
+initializeUI()
 const signaling = import.meta.env.VITE_SIGNALING_URL || 'wss://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net'
 const requestedRoom = new URL(location.href).searchParams.get('sala')
 const room = requestedRoom && /^[a-zA-Z0-9_-]{1,64}$/.test(requestedRoom) ? requestedRoom : 'caderno-publico'
@@ -166,6 +168,7 @@ function updateFileStatus() {
   const changed = lastSaved !== null && lastSaved !== snapshot()
   const name = fileHandle?.name || fileName
   $('file-status').textContent = lastSaved === null ? 'Cópia no navegador · salve em HTML para guardar o arquivo' : `${name} · ${changed ? 'alterações não salvas no arquivo' : fileHandle ? 'arquivo salvo' : 'cópia importada ou baixada' }${/\.txt$/i.test(name) ? ' · TXT sem formatação' : ''}`
+  $('file-status').title = $('file-status').textContent
 }
 function htmlDocument() {
   return wrapHTML(cleanHTML(editor.getHTML()))
