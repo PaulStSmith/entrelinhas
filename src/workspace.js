@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Paulo Santos
 import * as Y from 'yjs'
-import { documentTitle, documentURL, PUBLIC_ROOM } from './library.js'
+import { documentTitle, documentURL, PUBLIC_ROOM, displayDocumentTitle } from './library.js'
 import { t, getLocale, formatDate, localizeMessage, onLanguageChange } from './i18n.js'
 
-export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady, initialTitle }) {
+export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady, initialRecord }) {
   const $ = id => document.getElementById(id)
   const date = formatDate
-  let title = initialTitle || (room === PUBLIC_ROOM ? t('publicTitle') : t('roomTitle', { room }))
+  let titleRecord = initialRecord || { room, titleKey: room === PUBLIC_ROOM ? 'publicTitle' : 'roomTitle' }
+  let title = displayDocumentTitle(titleRecord)
   let ready = false, timer, revision = 0, dirty = false, selectedCheckpoint, queue = Promise.resolve()
   let lastCheckpoint, historyWarning = false
   function updateTitle(value) {
@@ -67,10 +68,10 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     const records = await library.listDocuments()
     const query = $('document-filter').value.toLocaleLowerCase(getLocale())
     const list = $('document-list'); list.replaceChildren()
-    for (const record of records.filter(item => `${item.title} ${item.room}`.toLocaleLowerCase(getLocale()).includes(query))) {
+    for (const record of records.filter(item => `${displayDocumentTitle(item)} ${item.room}`.toLocaleLowerCase(getLocale()).includes(query))) {
       const row = document.createElement('li')
       const link = document.createElement('a'); link.href = documentURL(record.room, location.href)
-      link.textContent = record.title
+      link.textContent = displayDocumentTitle(record)
       if (record.room === room) {
         link.setAttribute('aria-current', 'page')
         const current = document.createElement('span'); current.className = 'current-label'; current.textContent = ` · ${t('current')}`; link.append(current)
@@ -91,13 +92,13 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     $('documents-dialog').showModal(); $('document-filter').focus()
   })
   $('document-filter').addEventListener('input', () => renderDocuments().catch(warning))
-  action('new-document-form', () => newDocument(documentTitle($('new-document-title').value)), 'submit')
+  action('new-document-form', () => newDocument($('new-document-title').value), 'submit')
   action('rename-document', () => {
     $('rename-title').value = title; $('rename-dialog').showModal(); $('rename-title').focus()
   })
   action('rename-form', async () => {
     const record = await library.touchDocument(room, $('rename-title').value)
-    updateTitle(record.title); $('rename-dialog').close()
+    titleRecord = record; updateTitle(displayDocumentTitle(record)); $('rename-dialog').close()
     toast(t('renamed'))
   }, 'submit')
   action('duplicate-document', () => newDocument(t('copyTitle', { title }), Y.encodeStateAsUpdate(doc)))
@@ -153,7 +154,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     if (document.hidden && dirty && ready) capture('Ao sair da aba').catch(warning)
   })
   onLanguageChange(() => {
-    updateTitle(title); updateCheckpointStatus()
+    updateTitle(displayDocumentTitle(titleRecord)); updateCheckpointStatus()
     if ($('documents-dialog').open) renderDocuments().catch(warning)
     if ($('history-dialog').open) renderHistory(selectedCheckpoint?.id).catch(warning)
   })
@@ -163,7 +164,7 @@ export function createWorkspace({ editor, doc, library, room, cleanHTML, toast, 
     async start() {
       try {
         const record = await library.touchDocument(room)
-        updateTitle(record.title); ready = true
+        titleRecord = record; updateTitle(displayDocumentTitle(record)); ready = true
         for (const button of document.querySelectorAll('[data-library-action]')) button.disabled = false
         await capture('Ao abrir o documento')
       } catch (error) { warning(error) }

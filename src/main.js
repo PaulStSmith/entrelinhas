@@ -89,7 +89,7 @@ editor = new Editor({
   onSelectionUpdate: updateFormat,
   onTransaction: updateFormat
 })
-workspace = createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady: () => storageReady, initialTitle: initialRecord?.title })
+workspace = createWorkspace({ editor, doc, library, room, cleanHTML, toast, isReady: () => storageReady, initialRecord })
 function updateStats() {
   const content = editor.getText()
   const words = content.trim() ? content.trim().split(/\s+/u).length : 0

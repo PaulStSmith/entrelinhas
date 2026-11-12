@@ -71,7 +71,7 @@ O CRDT define como combinar as alterações; o WebRTC define como transportá-la
 
 As traduções de inglês, português, espanhol e francês são entregues com a aplicação estática. A escolha inicial segue a lista de idiomas do navegador, reconhece variantes regionais e usa inglês como fallback. Uma escolha manual fica no armazenamento local e pode ser removida pelo modo automático.
 
-A troca atualiza o idioma HTML, as legendas, as descrições acessíveis e os formatos de datas e números sem recarregar o editor. A atualização se limita à interface previamente identificada e a mensagens geradas pela aplicação. Conteúdo CRDT, nomes salvos, nomes de participantes, identificadores de salas e chaves de persistência não são traduzidos nem modificados.
+A troca atualiza o idioma HTML, as legendas, as descrições acessíveis e os formatos de datas e números sem recarregar o editor. A atualização se limita à interface previamente identificada e a mensagens geradas pela aplicação. Nomes padrão usam a chave `titleKey` no registro local e são apresentados no idioma atual. Registros antigos com o nome padrão conhecido são reconhecidos ao abrir; uma renomeação explícita grava `titleKey: null` e preserva o nome escolhido. Conteúdo CRDT, nomes personalizados, nomes de participantes, identificadores de salas e chaves de persistência não são traduzidos nem modificados.
 
 ### Biblioteca e recuperação local
 

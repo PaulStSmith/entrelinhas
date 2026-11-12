@@ -4,7 +4,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { IDBFactory } from 'fake-indexeddb'
 import * as Y from 'yjs'
-import { createLibrary, documentURL, MAX_CHECKPOINTS, MAX_HISTORY_BYTES } from '../src/library.js'
+import { JSDOM } from 'jsdom'
+import { initializeI18n } from '../src/i18n.js'
+import { createLibrary, displayDocumentTitle, documentURL, MAX_CHECKPOINTS, MAX_HISTORY_BYTES } from '../src/library.js'
 
 test('biblioteca preserva nomes, sementes e dados entre conexões e rejeita salas duplicadas', async () => {
   const indexedDB = new IDBFactory()
@@ -89,4 +91,30 @@ test('uma transação abortada não apaga versões durante a retenção', async 
   const after = await library.listCheckpoints('sala')
   assert.deepEqual(after.map(item => item.id), before.map(item => item.id))
   await library.close()
+})
+
+
+test('default titles follow language while explicit names survive reloads', async () => {
+  const page = new JSDOM('<body></body>', { url: 'https://editor.byteforge.biz/' })
+  const select = language => initializeI18n({ document: page.window.document, navigator: { languages: [language] } })
+  const library = createLibrary(new IDBFactory())
+  try {
+    select('pt')
+    const shared = await library.touchDocument('caderno-publico')
+    const blank = await library.createDocument({ room: 'doc-blank' })
+    assert.equal(displayDocumentTitle(shared), 'Nosso caderno compartilhado')
+    for (const [language, expected] of [['en', 'Our shared notebook'], ['es', 'Nuestro cuaderno compartido'], ['fr', 'Notre carnet partagé']]) {
+      select(language)
+      assert.equal(displayDocumentTitle(shared), expected)
+      assert.equal(displayDocumentTitle({ room: 'caderno-publico', title: 'Nosso caderno compartilhado' }), expected)
+    }
+    assert.equal(displayDocumentTitle(blank), 'Document sans titre')
+    await library.touchDocument('caderno-publico', 'Nosso caderno compartilhado')
+    const renamed = await library.touchDocument('caderno-publico')
+    assert.equal(renamed.titleKey, null)
+    assert.equal(displayDocumentTitle(renamed), 'Nosso caderno compartilhado')
+    assert.equal(displayDocumentTitle({ room: 'custom', title: 'My own notebook' }), 'My own notebook')
+  } finally {
+    select('en'); page.window.close(); await library.close()
+  }
 })
