@@ -64,7 +64,7 @@ Os oito testes verificam convergência com inserções e exclusões concorrentes
 
 O workflow `.github/workflows/pages.yml` testa, compila e publica a interface quando a branch `main` recebe alterações. A aplicação usa caminhos relativos, compatíveis com GitHub Pages em subdiretório.
 
-O domínio `editor.byteforge.biz` usa um CNAME DNS direto na Cloudflare para `paulstsmith.github.io`. O workflow manual `https.yml` aguarda a emissão do certificado por até uma hora, habilita a exigência de HTTPS e confere a página publicada. Não altera o domínio principal de `byteforge.biz`.
+O domínio `editor.byteforge.biz` usa um CNAME DNS direto na Cloudflare para `paulstsmith.github.io`. O script `configurar-https.ps1` usa o login existente do `gh`, aguarda a emissão do certificado por até uma hora, habilita a exigência de HTTPS e confere a página publicada. O token padrão do GitHub Actions não possui acesso para alterar essa configuração. O domínio principal de `byteforge.biz` é preservado.
 
 O servidor roda no Azure App Service Linux **Free F1**, em Canada Central, dentro de `rg-editor-crdt`. Para publicar alterações na sinalização, depois de `npm ci` e `az login`, execute:
 
