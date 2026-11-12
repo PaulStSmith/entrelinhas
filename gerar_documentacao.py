@@ -24,7 +24,7 @@
 from pathlib import Path
 import re
 from docx import Document
-from docx.shared import Cm, Pt, RGBColor, Inches
+from docx.shared import Cm, Pt, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -72,7 +72,7 @@ normal.font.color.rgb=RGBColor(0,0,0)
 normal.paragraph_format.space_after=Pt(6)
 normal.paragraph_format.line_spacing=1.12
 normal.paragraph_format.widow_control=True
-for name,size in [('Title',23),('Subtitle',12),('Heading 1',15),('Heading 2',12)]:
+for name,size in [('Title',23),('Subtitle',12),('Heading 1',15),('Heading 2',12),('Heading 3',11)]:
     s=doc.styles[name];s.font.name='Arial';s.font.size=Pt(size);s.font.color.rgb=RGBColor(0,0,0)
     s.paragraph_format.space_before=Pt(13 if name.startswith('Heading') else 0)
     s.paragraph_format.space_after=Pt(7)
@@ -83,31 +83,38 @@ for el in list(doc.styles.element.iter(qn('w:pBdr'))):
 for name in ['List Bullet','List Number']:
     doc.styles[name].font.name='Arial';doc.styles[name].font.size=Pt(10.5)
     doc.styles[name].paragraph_format.space_after=Pt(5)
-doc.core_properties.title='Editor colaborativo distribuído com CRDT'
+doc.core_properties.title='Entrelinhas arquitetura e operação no Azure'
 doc.core_properties.subject='Arquitetura implementada para edição colaborativa em JavaScript com hospedagem no Azure Static Web Apps'
 doc.core_properties.author='Paulo Santos'
 doc.core_properties.keywords='CRDT, Yjs, WebRTC, Azure Static Web Apps, sistemas distribuídos'
-doc.add_paragraph('Editor colaborativo distribuído com CRDT','Title')
+doc.add_paragraph('Entrelinhas arquitetura e operação no Azure','Title')
 doc.add_paragraph('Sistema distribuído em JavaScript com hospedagem no Azure Static Web Apps','Subtitle')
-doc.add_paragraph('Arquitetura Reativa  |  Entrelinhas no Azure')
-doc.add_paragraph('O projeto implementa um editor público em que os participantes alteram o mesmo documento a partir de navegadores independentes. A escolha de CRDT permite edição local durante desconexões e convergência após a sincronização. O Azure Static Web Apps hospeda a interface; a comunicação entre participantes utiliza WebRTC com sinalização no Azure App Service F1.')
+doc.add_paragraph('Arquitetura Reativa  |  Paulo Santos  |  12 de novembro de 2026')
+doc.add_paragraph('O Entrelinhas é um editor colaborativo em produção no Azure. Este documento descreve a arquitetura CRDT, o funcionamento das réplicas e a configuração de hospedagem, publicação e recuperação. A interface usa Azure Static Web Apps Free com domínio personalizado e HTTPS; o Azure App Service F1 fornece a sinalização das conexões WebRTC. Todo o código é mantido no repositório único PaulStSmith/entrelinhas.')
 
 def add_text(p,text):
     # Mantém links utilizáveis no Word e formatação de ênfase do texto de origem.
-    for part in re.split(r'(\[[^\]]+\]\(https?://[^)]+\)|\*\*.+?\*\*)',text):
-        m=re.fullmatch(r'\[([^\]]+)\]\((https?://[^)]+)\)',part)
+    for part in re.split(r'(\[[^\]]+\]\([^)]+\)|\*\*.+?\*\*|`[^`]+`)',text):
+        m=re.fullmatch(r'\[([^\]]+)\]\(([^)]+)\)',part)
         if m:
+            target=m[2]
+            if not target.startswith(('http://', 'https://')):
+                # Links relativos dos fontes Markdown devem funcionar fora do checkout.
+                target='https://github.com/PaulStSmith/entrelinhas/blob/main/' + str((Path('docs') / target).as_posix()).replace('docs/../', '')
             from docx.opc.constants import RELATIONSHIP_TYPE as RT
-            link=OxmlElement('w:hyperlink');link.set(qn('r:id'),p.part.relate_to(m[2],RT.HYPERLINK,is_external=True))
+            link=OxmlElement('w:hyperlink');link.set(qn('r:id'),p.part.relate_to(target,RT.HYPERLINK,is_external=True))
             r=OxmlElement('w:r');rp=OxmlElement('w:rPr');color=OxmlElement('w:color');color.set(qn('w:val'),'154A7E');rp.append(color);r.append(rp)
             t=OxmlElement('w:t');t.text=m[1];r.append(t);link.append(r);p._p.append(link)
         elif part.startswith('**'):
             p.add_run(part[2:-2]).bold=True
+        elif part.startswith('`'):
+            run=p.add_run(part[1:-1]);run.font.name='Consolas';run.font.size=Pt(9)
         else:p.add_run(part)
 
 def table(rows):
     t=doc.add_table(rows=0, cols=len(rows[0]));t.alignment=WD_TABLE_ALIGNMENT.CENTER;t.autofit=False
-    widths=[5.1,11.3]
+    widths={2:[5.1,11.3],4:[3.1,6.1,3.2,4.0]}[len(rows[0])]
+    for column,width in zip(t.columns,widths):column.width=Cm(width)
     for i,row in enumerate(rows):
         cells=t.add_row().cells
         for j,text in enumerate(row):
@@ -127,12 +134,37 @@ def table(rows):
             pr.append(mar)
             if i==0:
                 for r in p.runs:r.bold=True
+            if len(widths)==4 and j>=2:p.alignment=WD_ALIGN_PARAGRAPH.CENTER
         if i==0:
             repeat=OxmlElement('w:tblHeader');t.rows[-1]._tr.get_or_add_trPr().append(repeat)
         no_split=OxmlElement('w:cantSplit');t.rows[-1]._tr.get_or_add_trPr().append(no_split)
     doc.add_paragraph().paragraph_format.space_after=Pt(0)
 
-lines=(ROOT/'docs'/'ARQUITETURA.md').read_text(encoding='utf-8').splitlines()
+architecture=(ROOT/'docs'/'ARQUITETURA.md').read_text(encoding='utf-8-sig')
+operations=(ROOT/'docs'/'AZURE.md').read_text(encoding='utf-8-sig')
+architecture_body, _, references = architecture.partition('## 9. Referências técnicas')
+lines=architecture_body.splitlines()
+# O capítulo operacional vem do mesmo guia mantido no repositório.
+lines += ['', '## 9. Hospedagem e operação em produção']
+for section in re.split(r'(?=^## )', operations, flags=re.M):
+    if not section.startswith('## '):continue
+    heading=section.splitlines()[0][3:]
+    if heading=='Publicação manual e recuperação':
+        section='''## Recuperação no Azure
+
+Para publicar manualmente a sinalização, execute npm ci, npm test e ./publicar-servidor.ps1 com o Azure CLI autenticado. O script empacota somente a sinalização e confere /health. A interface pode ser republicada pelo workflow Publicar interface no Azure em main.
+
+Para reverter uma versão, use git revert no commit correspondente e publique em main, mantendo os workflows Azure. Execute manualmente o workflow do servidor se o revert não alterar os caminhos monitorados. Confira HTTPS e /health depois da publicação. O repositório antigo foi excluído e não fornece um destino de retorno.
+
+Se a interface precisar ser recriada, mantenha o plano Free, atualize o token de implantação e o hostname, publique o site e valide o domínio por TXT. Confira o certificado antes de alterar o CNAME. O procedimento detalhado está no [guia Azure](AZURE.md).
+
+Reverter código ou recriar hospedagem não restaura documentos dos participantes. As réplicas continuam nos navegadores; baixe cópias dos documentos importantes.
+'''
+    # Rebaixa os títulos do guia para dentro do capítulo operacional.
+    section=re.sub(r'^### ', '#### ', section, flags=re.M)
+    section=re.sub(r'^## ', '### ', section, flags=re.M)
+    lines += ['', *section.splitlines()]
+lines += ['', '## 10. Referências técnicas', *references.splitlines()]
 i=1
 while i<len(lines):
     line=lines[i].strip();i+=1
@@ -140,23 +172,31 @@ while i<len(lines):
     if line.startswith('Este documento descreve'):
         line='O documento apresenta o cenário, a justificativa da estratégia, os riscos das alternativas e o fluxo de uma operação, além da arquitetura e dos critérios de validação da implementação.'
     if line.startswith('```'):
-        while i<len(lines) and not lines[i].startswith('```'):i+=1
+        language=line[3:]
+        code=[]
+        while i<len(lines) and not lines[i].startswith('```'):
+            code.append(lines[i]);i+=1
         i+=1
-        p=doc.add_paragraph();p.paragraph_format.keep_with_next=True
-        p.add_run().add_picture(str(QA/'arquitetura.png'),width=Cm(16.1))
-        cap=doc.add_paragraph('Figura 1  Hospedagem da interface e comunicação entre réplicas')
-        cap.alignment=WD_ALIGN_PARAGRAPH.CENTER
-        for r in cap.runs:r.font.size=Pt(9)
+        if language=='text':
+            p=doc.add_paragraph();p.paragraph_format.keep_with_next=True
+            p.add_run().add_picture(str(QA/'arquitetura.png'),width=Cm(16.1))
+            cap=doc.add_paragraph('Figura 1  Hospedagem da interface e comunicação entre réplicas')
+            cap.alignment=WD_ALIGN_PARAGRAPH.CENTER
+            for r in cap.runs:r.font.size=Pt(9)
+        else:
+            for code_line in code:
+                p=doc.add_paragraph();p.paragraph_format.space_after=Pt(2)
+                run=p.add_run(code_line);run.font.name='Consolas';run.font.size=Pt(9)
     elif line.startswith('|'):
         rows=[line]
         while i<len(lines) and lines[i].strip().startswith('|'):rows.append(lines[i].strip());i+=1
         table([[x.strip() for x in row.strip('|').split('|')] for row in rows if not re.fullmatch(r'[| :\-]+',row)])
     elif line.startswith('#'):
-        level=1 if line.startswith('## ') else 2
+        level=min(len(line)-len(line.lstrip('#'))-1,3)
         text=re.sub(r'^#+\s*','',line)
         text=re.sub(r'^(\d+)\.\s*',r'\1 ',text).replace(':','')
         heading=doc.add_heading(text,level)
-        if text.startswith('6 Exemplo'):
+        if text.startswith(('6 Exemplo','9 Hospedagem')):
             heading.paragraph_format.page_break_before=True
     elif line.startswith('- '):add_text(doc.add_paragraph(style='List Bullet'),line[2:])
     elif re.match(r'^\d+\. ',line):

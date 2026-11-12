@@ -15,7 +15,7 @@ Os recursos ficam em `rg-editor-crdt`, na assinatura `Azure subscription 1` (`7e
 - [Saúde da sinalização](https://editor-crdt-byteforge-gcgzh6bmbcf2eudx.canadacentral-01.azurewebsites.net/health)
 - [Repositório único](https://github.com/PaulStSmith/entrelinhas)
 
-O repositório antigo foi excluído após a consolidação. Seu histórico até `1514a0a` foi incorporado pelo merge `04b480e`, junto com o DOCX original. Não existe publicação Pages nem retorno disponível por aquele repositório. Interface, servidor e documentação são mantidos aqui.
+O repositório antigo foi excluído após a consolidação. Seu histórico até `1514a0a` foi incorporado pelo merge `04b480e`, junto com a versão original do documento Word. A versão atual do Word acompanha a arquitetura e a operação Azure descritas neste repositório; a proposta original permanece no histórico Git. Não existe publicação Pages nem retorno disponível por aquele repositório. Interface, servidor e documentação são mantidos aqui.
 
 ## Domínio e HTTPS
 

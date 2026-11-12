@@ -49,7 +49,7 @@ Nos demais navegadores, salvar baixa uma nova cópia HTML. **Baixar HTML** sempr
 
 Atalhos: `Ctrl+O` abre, `Ctrl+S` salva, `Ctrl+Shift+S` salva como, `Ctrl+F` busca, `Ctrl+B` aplica negrito, `Ctrl+I` aplica itálico, `Ctrl+U` sublinha, `Ctrl+Z` desfaz e `Ctrl+Shift+Z` refaz. No macOS, use Command no lugar de Ctrl.
 
-A versão WYSIWYG utiliza salas e armazenamento `entrelinhas-rich-v2-*`, separados da demonstração inicial de texto simples. Não há migração automática do documento anterior; seu estado antigo permanece no IndexedDB de origem e a proposta DOCX continua como registro da arquitetura inicial.
+A versão WYSIWYG utiliza salas e armazenamento `entrelinhas-rich-v2-*`, separados da demonstração inicial de texto simples. Não há migração automática do documento anterior; seu estado antigo permanece no IndexedDB de origem.
 
 ## Validação
 
@@ -108,7 +108,7 @@ Um recurso recriado recebe outro hostname e token: atualize o secret, valide o d
 
 A fundamentação e a arquitetura implementada estão em [docs/ARQUITETURA.md](docs/ARQUITETURA.md). A configuração operacional está em [docs/AZURE.md](docs/AZURE.md).
 
-O arquivo [DOCX original](Documentacao_Editor_Colaborativo_CRDT.docx) registra a proposta inicial com GitHub Pages e foi preservado sem alterações como documento histórico. Para hospedagem, autenticação e recuperação atuais, use a documentação Markdown do Azure.
+O [documento Word](Documentacao_Editor_Colaborativo_CRDT.docx) reúne a arquitetura implementada e a operação final no Azure, incluindo domínio, HTTPS, publicação e recuperação. Para regenerá-lo a partir dos fontes Markdown, use `gerar_documentacao.py` com python-docx e Pillow. A proposta original permanece no histórico Git.
 
 ## Licença
 
